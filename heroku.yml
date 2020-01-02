@@ -6,7 +6,7 @@ run:
     command:
       - python -m srv.bot
     image: bot
-  hook_catcher:
+  web:
     command:
       - uwsgi --http 0:$PORT --module srv.web:app --master --processes 4 --threads 2
     image: bot
