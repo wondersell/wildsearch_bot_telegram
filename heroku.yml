@@ -8,5 +8,5 @@ run:
     image: bot
   hook_catcher:
     command:
-      - uwsgi --module srv.web:app
+      - uwsgi --http 0:$PORT --module srv.web:app --master --processes 4 --threads 2
     image: bot
