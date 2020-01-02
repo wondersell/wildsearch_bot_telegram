@@ -1,0 +1,12 @@
+build:
+  docker:
+    bot: src/Dockerfile_heroku
+run:
+  bot:
+    command:
+      - python -m srv.bot
+    image: bot
+  hook_catcher:
+    command:
+      - uwsgi --http :$PORT --module srv.web:app
+    image: bot

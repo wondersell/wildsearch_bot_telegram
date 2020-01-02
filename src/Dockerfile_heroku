@@ -9,7 +9,9 @@ RUN apt-get update && \
 
 RUN pip install uwsgi
 
-RUN mkdir -p /srv
+#RUN mkdir -p /srv
+ADD ./src /srv
+WORKDIR /srv
 
 # Run the image as a non-root user
 RUN adduser -D wildsearch_bot
