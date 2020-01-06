@@ -88,6 +88,7 @@ def main():
                               url_path=env('TELEGRAM_API_TOKEN'))
         updater.bot.set_webhook(env('WILDSEARCH_WEBHOOKS_DOMAIN') + env('TELEGRAM_API_TOKEN'))
     else:
+        updater.bot.delete_webhook()
         updater.start_polling()
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
