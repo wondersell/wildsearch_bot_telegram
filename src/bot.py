@@ -1,5 +1,6 @@
 import logging
 import random
+import os
 
 from .scrapinghub_helper import *
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -81,8 +82,13 @@ def main():
     # log all errors
     dp.add_error_handler(error)
 
-    # Start the Bot
-    updater.start_polling()
+    if env('WILDSEARCH_USE_WEBHOOKS'):
+        updater.start_webhook(listen="0.0.0.0",
+                              port=int(os.environ.get('PORT', '8443')),
+                              url_path=env('TELEGRAM_API_TOKEN'))
+        updater.bot.set_webhook(env('WILDSEARCH_WEBHOOKS_DOMAIN') + env('TELEGRAM_API_TOKEN'))
+    else:
+        updater.start_polling()
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
