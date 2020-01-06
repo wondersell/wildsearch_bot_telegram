@@ -6,3 +6,4 @@ pyyaml
 pandas
 envparse
 sentry-sdk==0.13.5
+msgpack==0.6.1
