@@ -1,14 +1,28 @@
+import logging
 import tempfile
+import sentry_sdk
 import pandas as pd
 
 from scrapinghub import ScrapinghubClient
 from envparse import env
 
 
+# загружаем конфиг
 env.read_envfile()
+
+# включаем логи
+logging.basicConfig(format='[%(asctime)s][%(levelname)s] %(message)s',
+                    level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
+# включаем Sentry
+if env('SENTRY_DSN', default=None) is not None:
+    sentry_sdk.init(env('SENTRY_DSN'))
 
 
 def init_scrapinghub():
+    logger.info('Initializing scrapinghub')
     client = ScrapinghubClient(env('SCRAPINGHUB_API_KEY'))
     project = client.get_project(env('SCRAPINGHUB_PROJECT_ID'))
 
@@ -17,6 +31,7 @@ def init_scrapinghub():
 
 def schedule_category_export(url, chat_id) -> str:
     """Schedule WB category export on Scrapinghub"""
+    logger.info(f"Scheduling category export for category {url}")
     sh = init_scrapinghub()
 
     job = sh['project'].jobs.run('wb', job_args={
@@ -25,11 +40,13 @@ def schedule_category_export(url, chat_id) -> str:
         'callback_params': f"chat_id={chat_id}"
     })
 
+    logger.info(f"Export for category {url} will have job key {job.key}")
     return 'https://app.scrapinghub.com/p/' + job.key
 
 
 def load_last_categories() -> list:
     """Export last two scraped WB categories for comparison"""
+    logger.info(f"Loading two last WB sitemap exports")
     sh = init_scrapinghub()
 
     jobs_summary = sh['project'].jobs.iter(has_tag=['daily_categories'], state='finished', count=2)
@@ -53,6 +70,7 @@ def load_last_categories() -> list:
 
 def get_categories_diff() -> dict:
     """Compare old and new category lists and get new categories with Pandas"""
+    logger.info(f"Calculating WB categories diff")
     categories = load_last_categories()
 
     # for details see https://pythondata.com/quick-tip-comparing-two-pandas-dataframes-and-getting-the-differences/
@@ -72,6 +90,8 @@ def get_categories_diff() -> dict:
     new_unique_count = len(grouped)
 
     file_to_export = tempfile.NamedTemporaryFile(suffix='.xlsx', mode='r+b')
+
+    logger.info(f"Saving diff to tempfile {file_to_export.name}")
     grouped.to_excel(file_to_export.name, index=None, header=True)
 
     return {

@@ -5,3 +5,4 @@ falcon
 pyyaml
 pandas
 envparse
+sentry-sdk==0.13.5

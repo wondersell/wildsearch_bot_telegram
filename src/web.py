@@ -1,20 +1,26 @@
-import falcon
-import logging
 import json
+import sentry_sdk
+
+import falcon
+from sentry_sdk.integrations.falcon import FalconIntegration
+from envparse import env
+from telegram import Bot
 
 from .scrapinghub_helper import *
-from telegram import Bot
-from envparse import env
 
 
 # загружаем конфиг
 env.read_envfile()
 
-# Enable logging
+# включаем логи
 logging.basicConfig(format='[%(asctime)s][%(levelname)s] %(message)s',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+# включаем Sentry
+if env('SENTRY_DSN', default=None) is not None:
+    sentry_sdk.init(env('SENTRY_DSN'), integrations=[FalconIntegration()])
 
 
 def get_cat_update_users():
@@ -23,6 +29,8 @@ def get_cat_update_users():
 
 class CallbackResource(object):
     def on_post(self, req, resp, type):
+        logger.info(f"Recieved post callback for {type}")
+
         if type == 'category_export':
             if req.has_param('chat_id'):
                 bot.send_message(chat_id=req.get_param('chat_id'), text='Выгрузка данных по категории готова')
@@ -31,6 +39,8 @@ class CallbackResource(object):
             diff_data = get_categories_diff()
 
             for uid in get_cat_update_users():
+                logger.info(f"Sending notification to {uid}")
+
                 if diff_data['new_count'] != 0:
                     bot.send_message(chat_id=uid, text=f"Обновились данные по категориям на Wildberries. C последнего "
                                                        f"обновления добавилось {diff_data['new_count']} категорий, "

@@ -1,6 +1,7 @@
 import logging
 import random
 import os
+import sentry_sdk
 
 from .scrapinghub_helper import *
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -10,11 +11,15 @@ from envparse import env
 # загружаем конфиг
 env.read_envfile()
 
-# Enable logging
+# включаем логи
 logging.basicConfig(format='[%(asctime)s][%(levelname)s] %(message)s',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+
+# включаем Sentry
+if env('SENTRY_DSN', default=None) is not None:
+    sentry_sdk.init(env('SENTRY_DSN'))
 
 
 def catalog(update, context):
@@ -83,11 +88,14 @@ def main():
     dp.add_error_handler(error)
 
     if env('WILDSEARCH_USE_WEBHOOKS'):
+        logger.info('User webhooks param is ON, setting webhooks')
+
         updater.start_webhook(listen="0.0.0.0",
                               port=int(os.environ.get('PORT', '8443')),
                               url_path=env('TELEGRAM_API_TOKEN'))
         updater.bot.set_webhook(env('WILDSEARCH_WEBHOOKS_DOMAIN') + env('TELEGRAM_API_TOKEN'))
     else:
+        logger.info('User webhooks param is OFF, deleting webhooks and starting longpolling')
         updater.bot.delete_webhook()
         updater.start_polling()
 
@@ -98,4 +106,6 @@ def main():
 
 
 if __name__ == '__main__':
+    division_by_zero = 1 / 0
+
     main()
