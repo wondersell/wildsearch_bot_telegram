@@ -87,7 +87,7 @@ def main():
     # log all errors
     dp.add_error_handler(error)
 
-    if env('WILDSEARCH_USE_WEBHOOKS'):
+    if env('WILDSEARCH_USE_WEBHOOKS', default=False) is not False:
         logger.info('User webhooks param is ON, setting webhooks')
 
         updater.start_webhook(listen="0.0.0.0",
