@@ -29,10 +29,18 @@ def init_scrapinghub():
     return {'client': client, 'project': project}
 
 
+def scheduled_jobs_count(sh, spider) -> int:
+    spider = sh['project'].spiders.get(spider)
+    return spider.jobs.count(state='pending') + spider.jobs.count(state='running')
+
+
 def schedule_category_export(url, chat_id) -> str:
     """Schedule WB category export on Scrapinghub"""
-    logger.info(f"Scheduling category export for category {url}")
+    logger.info(f"Export {url} for chat #{chat_id}")
     sh = init_scrapinghub()
+
+    if scheduled_jobs_count(sh, 'wb') > 1:
+        raise Exception("Spider wb has more than 1 queued jobs")
 
     job = sh['project'].jobs.run('wb', job_args={
         'category_url': url,

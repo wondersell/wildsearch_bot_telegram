@@ -23,9 +23,13 @@ if env('SENTRY_DSN', default=None) is not None:
 
 
 def catalog(update, context):
-    logger.info(f"Received request for catalog info ({update.message.text})")
+    logger.info(f"Requested export ({update.message.text}) for chat #{update.message.chat_id}")
 
-    job_url = schedule_category_export(update.message.text, update.message.chat_id)
+    try:
+        job_url = schedule_category_export(update.message.text, update.message.chat_id)
+    except Exception as e:
+        logger.error(f"Export for chat #{update.message.chat_id} failed: {str(e)}")
+        update.message.reply_text(f"Произошла ошибка при запросе каталога, попробуйте запросить его позже")
 
     update.message.reply_text(f"Вы запросили анализ каталога, он будет доступен по ссылке {job_url}")
 
@@ -38,11 +42,6 @@ def start(update, context):
 def help(update, context):
     """Send a message when the command /help is issued."""
     update.message.reply_text('Help!')
-
-
-def echo(update, context):
-    """Echo the user message."""
-    update.message.reply_text(update.message.text)
 
 
 def rnd(update, context):
