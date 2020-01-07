@@ -1,9 +1,10 @@
 python-telegram-bot==12.2.0
 openpyxl==3.0.1
-scrapinghub
-falcon
-pyyaml
-pandas
-envparse
+scrapinghub==2.3.0
+falcon==2.0.0
+PyYAML==5.3
+pandas==0.25.3
+envparse==0.2.0
 sentry-sdk==0.13.5
 msgpack==0.6.1
+pytest==5.3.2
