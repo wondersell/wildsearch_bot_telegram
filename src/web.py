@@ -1,13 +1,10 @@
 import json
-import sentry_sdk
 
 import falcon
 from sentry_sdk.integrations.falcon import FalconIntegration
-from envparse import env
 from telegram import Bot
 
 from .scrapinghub_helper import *
-
 
 # загружаем конфиг
 env.read_envfile()
@@ -27,31 +24,38 @@ def get_cat_update_users():
     return env('WILDSEARCH_TEST_USER_LIST').split(',')
 
 
-class CallbackResource(object):
-    def on_post(self, req, resp, type):
-        logger.info(f"Recieved post callback for {type}")
+class CallbackCategoryExportResource(object):
+    def on_post(self, req, resp):
+        if req.has_param('chat_id'):
+            bot.send_message(chat_id=req.get_param('chat_id'), text='Выгрузка данных по категории готова')
+            resp.status = falcon.HTTP_200
+            resp.body = json.dumps({'status': 'ok'})
+        else:
+            resp.status = falcon.HTTP_500
+            resp.body = json.dumps({'error': 'wrong_chat_id'})
 
-        if type == 'category_export':
-            if req.has_param('chat_id'):
-                bot.send_message(chat_id=req.get_param('chat_id'), text='Выгрузка данных по категории готова')
 
-        if type == 'category_list':
-            diff_data = get_categories_diff()
+class CallbackCategoryListResource(object):
+    def on_post(self, req, resp):
+        comparator = WbCategoryComparator()
+        comparator.load_from_api()
+        comparator.calculate_added_diff()
+        added_count = comparator.get_categories_count()
+        added_unique_count = comparator.get_unique_categories_count()
 
-            for uid in get_cat_update_users():
-                logger.info(f"Sending notification to {uid}")
+        if added_unique_count == 0:
+            message = f'За последние сутки категории на Wildberries не обновились'
+            send_export = False
+        else:
+            comparator.dump_to_tempfile()
+            message = f'Обновились данные по категориям на Wildberries. C последнего  обновления добавилось ' \
+                      f'{added_count} категорий, из них {added_unique_count} уникальных'
+            send_export = True
 
-                if diff_data['new_count'] != 0:
-                    bot.send_message(chat_id=uid, text=f"Обновились данные по категориям на Wildberries. C последнего "
-                                                       f"обновления добавилось {diff_data['new_count']} категорий, "
-                                                       f"из них {diff_data['new_unique_count']} уникальных")
-
-                    # перед каждой отправкой нужно перемотать файл в начало
-                    diff_data['new_unique_xlsx'].seek(0)
-
-                    bot.send_document(chat_id=uid, document=diff_data['new_unique_xlsx'])
-                else:
-                    bot.send_message(chat_id=uid, text=f"За последние сутки категории на Wildberries не обновились")
+        for uid in get_cat_update_users():
+            bot.send_message(chat_id=uid, text=message)
+            if send_export is True:
+                bot.send_document(chat_id=uid, document=comparator.get_from_tempfile())
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({'status': 'ok'})
@@ -61,5 +65,6 @@ bot = Bot(env('TELEGRAM_API_TOKEN'))
 
 app = falcon.API()
 app.req_options.auto_parse_form_urlencoded = True
-callback = CallbackResource()
-app.add_route('/callback/{type}', callback)
+
+app.add_route('/callback/category_export', CallbackCategoryExportResource())
+app.add_route('/callback/category_list', CallbackCategoryListResource())

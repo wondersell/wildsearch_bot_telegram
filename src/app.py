@@ -1,12 +1,11 @@
-import logging
 import random
 import os
-import sentry_sdk
+import random
+
+from envparse import env
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 from .scrapinghub_helper import *
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from envparse import env
-
 
 # загружаем конфиг
 env.read_envfile()
@@ -27,21 +26,10 @@ def catalog(update, context):
 
     try:
         job_url = schedule_category_export(update.message.text, update.message.chat_id)
+        update.message.reply_text(f"Вы запросили анализ каталога, он будет доступен по ссылке {job_url}")
     except Exception as e:
         logger.error(f"Export for chat #{update.message.chat_id} failed: {str(e)}")
         update.message.reply_text(f"Произошла ошибка при запросе каталога, попробуйте запросить его позже")
-
-    update.message.reply_text(f"Вы запросили анализ каталога, он будет доступен по ссылке {job_url}")
-
-
-def start(update, context):
-    """Send a message when the command /start is issued."""
-    update.message.reply_text('Hi!')
-
-
-def help(update, context):
-    """Send a message when the command /help is issued."""
-    update.message.reply_text('Help!')
 
 
 def rnd(update, context):
@@ -61,11 +49,6 @@ def rnd(update, context):
     update.message.reply_text(random.choice(messages))
 
 
-def error(update, context):
-    """Log Errors caused by Updates."""
-    logger.warning('Update "%s" caused error "%s"', update, context.error)
-
-
 def main():
     """Start the bot"""
     updater = Updater(env('TELEGRAM_API_TOKEN'), use_context=True)
@@ -73,18 +56,11 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help))
-
     # on catalog link start exporting catalog data
     dp.add_handler(MessageHandler(Filters.text & Filters.regex('www\.wildberries\.ru/catalog/'), catalog))
 
     # on no command i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text, rnd))
-
-    # log all errors
-    dp.add_error_handler(error)
 
     if env('WILDSEARCH_USE_WEBHOOKS', default=False) is not False:
         logger.info('User webhooks param is ON, setting webhooks')

@@ -1,11 +1,10 @@
 import logging
 import tempfile
-import sentry_sdk
+
 import pandas as pd
-
-from scrapinghub import ScrapinghubClient
+import sentry_sdk
 from envparse import env
-
+from scrapinghub import ScrapinghubClient
 
 # загружаем конфиг
 env.read_envfile()
@@ -35,7 +34,9 @@ def scheduled_jobs_count(sh, spider) -> int:
 
 
 def schedule_category_export(url, chat_id) -> str:
-    """Schedule WB category export on Scrapinghub"""
+    """
+    Schedule WB category export on Scrapinghub
+    """
     logger.info(f"Export {url} for chat #{chat_id}")
     sh = init_scrapinghub()
 
@@ -52,58 +53,105 @@ def schedule_category_export(url, chat_id) -> str:
     return 'https://app.scrapinghub.com/p/' + job.key
 
 
-def load_last_categories() -> list:
-    """Export last two scraped WB categories for comparison"""
-    logger.info(f"Loading two last WB sitemap exports")
-    sh = init_scrapinghub()
+class WbCategoryComparator:
+    _columns = ['wb_category_name', 'wb_category_url']
 
-    jobs_summary = sh['project'].jobs.iter(has_tag=['daily_categories'], state='finished', count=2)
+    def __init__(self):
+        self.categories_old = []
+        self.categories_new = []
+        self.diff = pd.DataFrame()
+        self.diff_unique = pd.DataFrame()
+        self.tmp_file = None
 
-    counter = 0
-    job_results = [[], []]
+    def load_from_api(self):
+        """
+        Export last two scraped WB categories for comparison
+        """
+        sh = init_scrapinghub()
 
-    for job in jobs_summary:
-        job_results[counter] = []
+        jobs_summary = sh['project'].jobs.iter(has_tag=['daily_categories'], state='finished', count=2)
 
-        for item in sh['client'].get_job(job['key']).items.iter():
-            job_results[counter].append({
-                'wb_category_name': item['wb_category_name'],
-                'wb_category_url': item['wb_category_url']
-            })
+        counter = 0
+        job_results = [[], []]
 
-        counter += 1
+        for job in jobs_summary:
+            job_results[counter] = []
 
-    return job_results
+            for item in sh['client'].get_job(job['key']).items.iter():
+                job_results[counter].append({
+                    'wb_category_name': item['wb_category_name'],
+                    'wb_category_url': item['wb_category_url']
+                })
 
+            counter += 1
 
-def get_categories_diff() -> dict:
-    """Compare old and new category lists and get new categories with Pandas"""
-    logger.info(f"Calculating WB categories diff")
-    categories = load_last_categories()
+        self.categories_old = job_results[0]
+        self.categories_new = job_results[1]
+        return self
 
-    # for details see https://pythondata.com/quick-tip-comparing-two-pandas-dataframes-and-getting-the-differences/
-    df1 = pd.DataFrame(categories[0], columns=['wb_category_name', 'wb_category_url'])
-    df2 = pd.DataFrame(categories[1], columns=['wb_category_name', 'wb_category_url'])
+    def load_from_list(self, l_1, l_2):
+        self.categories_old = l_1
+        self.categories_new = l_2
+        return self
 
-    df = pd.concat([df1, df2])  # concat dataframes
-    df = df.reset_index(drop=True)  # reset the index
-    df_gpby = df.groupby(list(df.columns))  # group by
-    idx = [x[0] for x in df_gpby.groups.values() if len(x) == 1]  # reindex
+    def calculate_full_diff(self):
+        """
+        Retrieve all different values from two dictionaries
+        Details: https://pythondata.com/quick-tip-comparing-two-pandas-dataframes-and-getting-the-differences/
+        """
+        df1 = pd.DataFrame(self.categories_old, columns=self._columns)
+        df2 = pd.DataFrame(self.categories_new, columns=self._columns)
 
-    ri = df.reindex(idx)
+        df = pd.concat([df1, df2])  # concat dataframes
+        df = df.reset_index(drop=True)  # reset the index
+        df_gpby = df.groupby(list(df.columns))  # group by
 
-    grouped = ri.groupby('wb_category_name', as_index=False).first()
+        diff_indexes = [x[0] for x in df_gpby.groups.values() if len(x) == 1]  # reindex
 
-    new_count = len(idx)
-    new_unique_count = len(grouped)
+        ri = df.reindex(diff_indexes)
 
-    file_to_export = tempfile.NamedTemporaryFile(suffix='.xlsx', mode='r+b')
+        self.diff = ri.groupby('wb_category_url', as_index=False).first()
+        self.diff_unique = self.diff.groupby('wb_category_name', as_index=False).first()
 
-    logger.info(f"Saving diff to tempfile {file_to_export.name}")
-    grouped.to_excel(file_to_export.name, index=None, header=True)
+        return self
 
-    return {
-        'new_count': new_count,
-        'new_unique_count': new_unique_count,
-        'new_unique_xlsx': file_to_export
-    }
+    def calculate_added_diff(self):
+        """
+        Retrieve only new values from two dictionaries
+        :return:
+        """
+        df_old = pd.DataFrame(self.categories_old, columns=self._columns)
+        df_new = pd.DataFrame(self.categories_new, columns=self._columns)
+
+        df_diff = pd.merge(df_new, df_old, how='outer', indicator=True)
+        self.diff = df_diff.loc[df_diff._merge == 'left_only', self._columns]
+
+        return self
+
+    def calculate_removed_diff(self):
+        """
+        Retrieve only old values from two dictionaries
+        :return:
+        """
+        df_old = pd.DataFrame(self.categories_old, columns=self._columns)
+        df_new = pd.DataFrame(self.categories_new, columns=self._columns)
+
+        df_diff = pd.merge(df_old, df_new, how='outer', indicator=True)
+        self.diff = df_diff.loc[df_diff._merge == 'left_only', self._columns]
+
+        return self
+
+    def get_categories_count(self) -> int:
+        return len(self.diff)
+
+    def get_unique_categories_count(self) -> int:
+        return len(self.diff)
+
+    def dump_to_tempfile(self, prefix=''):
+        self.tmp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix=prefix, mode='r+b')
+        self.diff.to_excel(self.tmp_file.name, index=None, header=True)
+        return self
+
+    def get_from_tempfile(self):
+        self.tmp_file.seek(0)
+        return self.tmp_file
