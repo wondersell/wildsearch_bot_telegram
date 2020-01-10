@@ -76,6 +76,15 @@ class WbCategoryComparator:
             ''
         ))
 
+    def generate_category_type(self, category_url):
+        if '/catalog/novinki/' in category_url:
+            return 'Новинки'
+
+        if '/promotions/' in category_url:
+            return 'Промо'
+
+        return 'Обычная'
+
     def __init__(self):
         self.categories_old = []
         self.categories_new = []
@@ -117,8 +126,19 @@ class WbCategoryComparator:
 
     def add_category_search_url(self):
         for _type in self._types:
-            #self.diff[_type]['wb_category_search_url'] = map(self.generate_search_url, self.diff[_type]['wb_category_name'])
-            self.diff[_type]['wb_category_search_url'] = self.diff[_type]['wb_category_name'].apply(lambda x: self.generate_search_url(x))
+            self.diff[_type]['wb_category_search_url'] = self.diff[_type]['wb_category_name'].apply(
+                lambda x: self.generate_search_url(x)
+            )
+
+    def add_category_type(self):
+        for _type in self._types:
+            self.diff[_type]['wb_category_type'] = self.diff[_type]['wb_category_url'].apply(
+                lambda x: self.generate_category_type(x)
+            )
+
+    def sort_by(self, _field):
+        for _type in self._types:
+            self.diff[_type].sort_values(by=[_field])
 
     def calculate_diff(self):
         self.calculate_added_diff()
@@ -126,6 +146,8 @@ class WbCategoryComparator:
         self.calculate_full_diff()
 
         self.add_category_search_url()
+        self.add_category_type()
+        self.sort_by('wb_category_type')
 
     def calculate_full_diff(self):
         """

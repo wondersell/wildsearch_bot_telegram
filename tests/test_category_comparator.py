@@ -2,7 +2,6 @@ import os
 
 import pytest
 from faker import Faker
-import pandas as pd
 
 from src.scrapinghub_helper import *
 
@@ -56,21 +55,21 @@ def test_load_from_lists(comparator):
     assert comparator.categories_new is lists[1]
 
 
-@pytest.mark.parametrize('lists, diff_added_count, diff_removed_count, diff_full_count', [
-    [make_categories(1, 2, 1),      1, 0, 1],  # когда есть одна новая категория
-    [make_categories(1, 2, 2),      2, 1, 3],  # когда все категории новые
-    [make_categories(10, 10, 0),    0, 0, 0],  # когда все категории старые
-    [make_categories(10, 5, 5),     5, 10, 15],  # когда категорий меньше и все новые
-    [make_categories(10, 5, 0),     0, 5, 5],  # когда категорий меньше и все старые
-    [make_categories(10, 15, 8),    8, 3, 11]  # когда категорий больше и частично новые
+@pytest.mark.parametrize('lists, diff_added_cnt, diff_removed_cnt, diff_full_cnt', [
+    [make_categories(1, 2, 1),      1, 0, 1],       # когда есть одна новая категория
+    [make_categories(1, 2, 2),      2, 1, 3],       # когда все категории новые
+    [make_categories(10, 10, 0),    0, 0, 0],       # когда все категории старые
+    [make_categories(10, 5, 5),     5, 10, 15],     # когда категорий меньше и все новые
+    [make_categories(10, 5, 0),     0, 5, 5],       # когда категорий меньше и все старые
+    [make_categories(10, 15, 8),    8, 3, 11]       # когда категорий больше и частично новые
 ])
-def test_compare_two_lists_added_categories_count(comparator, lists, diff_added_count, diff_removed_count, diff_full_count):
+def test_compare_two_lists_added_categories_count(comparator, lists, diff_added_cnt, diff_removed_cnt, diff_full_cnt):
     comparator.load_from_list(lists[0], lists[1])
     comparator.calculate_diff()
 
-    assert comparator.get_categories_count('added') is diff_added_count
-    assert comparator.get_categories_count('removed') is diff_removed_count
-    assert comparator.get_categories_count('full') is diff_full_count
+    assert comparator.get_categories_count('added') is diff_added_cnt
+    assert comparator.get_categories_count('removed') is diff_removed_cnt
+    assert comparator.get_categories_count('full') is diff_full_cnt
 
 
 def test_get_category_count_raises_exception(comparator_random):
@@ -140,3 +139,23 @@ def test_search_url_field_present(comparator_random, _type):
 
     assert 'wb_category_search_url' in comparator_random.diff[_type].columns
     assert 'www.wildberries.ru' in comparator_random.diff[_type].iloc[0].at['wb_category_search_url']
+
+
+@pytest.mark.parametrize('category_url, expected_type', [
+    ['https://www.wildberries.ru/catalog/novinki/chehly-dlya-prezervativov', 'Новинки'],
+    ['https://www.wildberries.ru/promotions/novogodniy-promokod/gelevye-poloski', 'Промо'],
+    ['https://www.wildberries.ru/catalog/krasota/uhod-za-kozhey/uhod-za-litsom/bandazhi-kosmeticheskie', 'Обычная']
+])
+def test_category_type_field_generator(category_url, expected_type):
+    comparator = WbCategoryComparator()
+    generated_type = comparator.generate_category_type(category_url)
+
+    assert generated_type == expected_type
+
+
+@pytest.mark.parametrize('_type', ['added', 'removed', 'full'])
+def test_category_type_field_present(comparator_random, _type):
+    comparator_random.calculate_diff()
+
+    assert 'wb_category_type' in comparator_random.diff[_type].columns
+    assert comparator_random.diff[_type].iloc[0].at['wb_category_type'] in ['Новинки', 'Промо', 'Обычная']
