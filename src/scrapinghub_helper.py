@@ -5,6 +5,7 @@ import pandas as pd
 import sentry_sdk
 from envparse import env
 from scrapinghub import ScrapinghubClient
+from urllib.parse import urlunparse, urlencode, quote
 
 # загружаем конфиг
 env.read_envfile()
@@ -65,6 +66,16 @@ class WbCategoryComparator:
 
         return skeleton
 
+    def generate_search_url(self, category_name):
+        return urlunparse((
+            'https',
+            'www.wildberries.ru',
+            'catalog/0/search.aspx',
+            '',
+            urlencode({'search': category_name}, quote_via=quote),
+            ''
+        ))
+
     def __init__(self):
         self.categories_old = []
         self.categories_new = []
@@ -104,10 +115,17 @@ class WbCategoryComparator:
         self.categories_new = l_2
         return self
 
+    def add_category_search_url(self):
+        for _type in self._types:
+            #self.diff[_type]['wb_category_search_url'] = map(self.generate_search_url, self.diff[_type]['wb_category_name'])
+            self.diff[_type]['wb_category_search_url'] = self.diff[_type]['wb_category_name'].apply(lambda x: self.generate_search_url(x))
+
     def calculate_diff(self):
         self.calculate_added_diff()
         self.calculate_removed_diff()
         self.calculate_full_diff()
+
+        self.add_category_search_url()
 
     def calculate_full_diff(self):
         """

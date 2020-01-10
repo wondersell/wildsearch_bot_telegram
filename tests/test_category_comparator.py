@@ -119,3 +119,24 @@ def test_fill_types_with(_type):
     assert filled['added'] is _type
     assert filled['removed'] is _type
     assert filled['full'] is _type
+
+
+@pytest.mark.parametrize('category_name, expected_url', [
+    ['Спортивная обувь', 'https://www.wildberries.ru/catalog/0/search.aspx?search=%D0%A1%D0%BF%D0%BE%D1%80%D1%82%D0%B8%D0%B2%D0%BD%D0%B0%D1%8F%20%D0%BE%D0%B1%D1%83%D0%B2%D1%8C'],
+    ['Распродажа обуви: -25% промокод', 'https://www.wildberries.ru/catalog/0/search.aspx?search=%D0%A0%D0%B0%D1%81%D0%BF%D1%80%D0%BE%D0%B4%D0%B0%D0%B6%D0%B0%20%D0%BE%D0%B1%D1%83%D0%B2%D0%B8%3A%20-25%25%20%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4'],
+    ['Blu-Ray проигрыватели', 'https://www.wildberries.ru/catalog/0/search.aspx?search=Blu-Ray%20%D0%BF%D1%80%D0%BE%D0%B8%D0%B3%D1%80%D1%8B%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D0%B8'],
+    ['Рюкзаки, сумки, чехлы', 'https://www.wildberries.ru/catalog/0/search.aspx?search=%D0%A0%D1%8E%D0%BA%D0%B7%D0%B0%D0%BA%D0%B8%2C%20%D1%81%D1%83%D0%BC%D0%BA%D0%B8%2C%20%D1%87%D0%B5%D1%85%D0%BB%D1%8B']
+])
+def test_search_url_field_generator(category_name, expected_url):
+    comparator = WbCategoryComparator()
+    generated_url = comparator.generate_search_url(category_name)
+
+    assert generated_url == expected_url
+
+
+@pytest.mark.parametrize('_type', ['added', 'removed', 'full'])
+def test_search_url_field_present(comparator_random, _type):
+    comparator_random.calculate_diff()
+
+    assert 'wb_category_search_url' in comparator_random.diff[_type].columns
+    assert 'www.wildberries.ru' in comparator_random.diff[_type].iloc[0].at['wb_category_search_url']
