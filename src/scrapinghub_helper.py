@@ -55,28 +55,23 @@ def schedule_category_export(url, chat_id) -> str:
 
 class WbCategoryComparator:
     _columns = ['wb_category_name', 'wb_category_url']
+    _types = ['added', 'removed', 'full']
+
+    def fill_types_with(self, value):
+        sceleton = {}
+
+        for _t in self._types:
+            sceleton[_t] = value
+
+        return sceleton
 
     def __init__(self):
         self.categories_old = []
         self.categories_new = []
 
-        self.diff = {
-            'added': pd.DataFrame(),
-            'removed': pd.DataFrame(),
-            'full': pd.DataFrame()
-        }
-
-        self.diff_unique = {
-            'added': pd.DataFrame(),
-            'removed': pd.DataFrame(),
-            'full': pd.DataFrame()
-        }
-
-        self.tmp_file = {
-            'added': None,
-            'removed': None,
-            'full': None
-        }
+        self.diff = self.fill_types_with(pd.DataFrame())
+        self.diff_unique = self.fill_types_with(pd.DataFrame())
+        self.tmp_file = self.fill_types_with(None)
 
     def load_from_api(self):
         """

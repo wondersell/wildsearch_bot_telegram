@@ -2,6 +2,7 @@ import os
 
 import pytest
 from faker import Faker
+import pandas as pd
 
 from src.scrapinghub_helper import *
 
@@ -108,3 +109,13 @@ def test_export_file_prefix(comparator_random, _type, expected_prefix):
     comparator_random.dump_to_tempfile(_type=_type)
 
     assert expected_prefix in comparator_random.get_from_tempfile(_type=_type).name
+
+
+@pytest.mark.parametrize('_type', [None, pd.DataFrame()])
+def test_fill_types_with(_type):
+    comparator = WbCategoryComparator()
+    filled = comparator.fill_types_with(_type)
+
+    assert filled['added'] is _type
+    assert filled['removed'] is _type
+    assert filled['full'] is _type
