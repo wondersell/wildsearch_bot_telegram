@@ -58,12 +58,12 @@ class WbCategoryComparator:
     _types = ['added', 'removed', 'full']
 
     def fill_types_with(self, value):
-        sceleton = {}
+        skeleton = {}
 
         for _t in self._types:
-            sceleton[_t] = value
+            skeleton[_t] = value
 
-        return sceleton
+        return skeleton
 
     def __init__(self):
         self.categories_old = []
