@@ -55,67 +55,56 @@ def test_load_from_lists(comparator):
     assert comparator.categories_new is lists[1]
 
 
-@pytest.mark.parametrize('lists, diff_count', [
-    [make_categories(1, 2, 1), 1],  # когда есть одна новая категория
-    [make_categories(1, 2, 2), 2],  # когда все категории новые
-    [make_categories(10, 10, 0), 0],  # когда все категории старые
-    [make_categories(10, 5, 5), 5],  # когда категорий меньше и все новые
-    [make_categories(10, 5, 0), 0],  # когда категорий меньше и все старые
-    [make_categories(10, 15, 8), 8]  # когда категорий больше и частично новые
+@pytest.mark.parametrize('lists, diff_added_count, diff_removed_count, diff_full_count', [
+    [make_categories(1, 2, 1),      1, 0, 1],  # когда есть одна новая категория
+    [make_categories(1, 2, 2),      2, 1, 3],  # когда все категории новые
+    [make_categories(10, 10, 0),    0, 0, 0],  # когда все категории старые
+    [make_categories(10, 5, 5),     5, 10, 15],  # когда категорий меньше и все новые
+    [make_categories(10, 5, 0),     0, 5, 5],  # когда категорий меньше и все старые
+    [make_categories(10, 15, 8),    8, 3, 11]  # когда категорий больше и частично новые
 ])
-def test_compare_two_lists_added_categories_count(comparator, lists, diff_count):
+def test_compare_two_lists_added_categories_count(comparator, lists, diff_added_count, diff_removed_count, diff_full_count):
     comparator.load_from_list(lists[0], lists[1])
-    comparator.calculate_added_diff()
+    comparator.calculate_diff()
 
-    assert comparator.get_categories_count() is diff_count
-
-
-@pytest.mark.parametrize('lists, diff_count', [
-    [make_categories(1, 2, 1), 0],  # когда есть одна новая категория
-    [make_categories(1, 2, 2), 1],  # когда все категории новые
-    [make_categories(10, 10, 0), 0],  # когда все категории старые
-    [make_categories(10, 5, 5), 10],  # когда категорий меньше и все новые
-    [make_categories(10, 5, 0), 5],  # когда категорий меньше и все старые
-    [make_categories(10, 15, 8), 3]  # когда категорий больше и частично новые
-])
-def test_compare_two_lists_removed_categories_count(comparator, lists, diff_count):
-    comparator.load_from_list(lists[0], lists[1])
-    comparator.calculate_removed_diff()
-
-    assert comparator.get_categories_count() is diff_count
+    assert comparator.get_categories_count('added') is diff_added_count
+    assert comparator.get_categories_count('removed') is diff_removed_count
+    assert comparator.get_categories_count('full') is diff_full_count
 
 
-@pytest.mark.parametrize('lists, diff_count', [
-    [make_categories(1, 2, 1), 1],  # когда есть одна новая категория
-    [make_categories(1, 2, 2), 3],  # когда все категории новые
-    [make_categories(10, 10, 0), 0],  # когда все категории старые
-    [make_categories(10, 5, 5), 15],  # когда категорий меньше и все новые
-    [make_categories(10, 5, 0), 5],  # когда категорий меньше и все старые
-    [make_categories(10, 15, 8), 11]  # когда категорий больше и частично новые
-])
-def test_compare_two_lists_full_diff_categories_count(comparator, lists, diff_count):
-    comparator.load_from_list(lists[0], lists[1])
-    comparator.calculate_full_diff()
+def test_get_category_count_raises_exception(comparator_random):
+    comparator_random.calculate_diff()
+    with pytest.raises(Exception) as execinfo:
+        comparator_random.get_categories_count()
 
-    assert comparator.get_categories_count() is diff_count
+    assert 'type is not defined' in str(execinfo.value)
 
 
 def test_all_fields_present(comparator_random):
-    comparator_random.calculate_full_diff()
+    expected_columns = WbCategoryComparator._columns.sort()
+    comparator_random.calculate_diff()
 
-    assert list(comparator_random.diff.columns) == ['wb_category_url', 'wb_category_name']
-
-
-def test_export_file_dump_full_double(comparator_random):
-    comparator_random.calculate_full_diff()
-    comparator_random.dump_to_tempfile()
-
-    assert os.path.getsize(comparator_random.get_from_tempfile().name) > 0
-    assert os.path.getsize(comparator_random.get_from_tempfile().name) > 0
+    assert list(comparator_random.diff['added'].columns).sort() == expected_columns
+    assert list(comparator_random.diff['removed'].columns).sort() == expected_columns
+    assert list(comparator_random.diff['full'].columns).sort() == expected_columns
 
 
-def test_export_file_prefix(comparator_random):
-    comparator_random.calculate_full_diff()
-    comparator_random.dump_to_tempfile(prefix='prefixed_')
+@pytest.mark.parametrize('_type', ['added', 'removed', 'full'])
+def test_export_file_dump_full_double(comparator_random, _type):
+    comparator_random.calculate_diff()
+    comparator_random.dump_to_tempfile(_type=_type)
 
-    assert 'prefixed_' in comparator_random.get_from_tempfile().name
+    assert os.path.getsize(comparator_random.get_from_tempfile(_type=_type).name) > 0
+    assert os.path.getsize(comparator_random.get_from_tempfile(_type=_type).name) > 0
+
+
+@pytest.mark.parametrize('_type, expected_prefix', [
+    ['added', 'added_'],
+    ['removed', 'removed_'],
+    ['full', 'full_']
+])
+def test_export_file_prefix(comparator_random, _type, expected_prefix):
+    comparator_random.calculate_diff()
+    comparator_random.dump_to_tempfile(_type=_type)
+
+    assert expected_prefix in comparator_random.get_from_tempfile(_type=_type).name

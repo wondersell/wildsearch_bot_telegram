@@ -39,23 +39,30 @@ class CallbackCategoryListResource(object):
     def on_post(self, req, resp):
         comparator = WbCategoryComparator()
         comparator.load_from_api()
-        comparator.calculate_added_diff()
-        added_count = comparator.get_categories_count()
-        added_unique_count = comparator.get_unique_categories_count()
+        comparator.calculate_diff()
+
+        added_count = comparator.get_categories_count('added')
+        removed_count = comparator.get_categories_count('removed')
+
+        added_unique_count = comparator.get_categories_unique_count('added')
 
         if added_unique_count == 0:
-            message = f'За последние сутки категории на Wildberries не обновились'
+            message = f'За последние сутки на Wildberries не добавилось категорий'
             send_export = False
         else:
-            comparator.dump_to_tempfile()
-            message = f'Обновились данные по категориям на Wildberries. C последнего  обновления добавилось ' \
-                      f'{added_count} категорий, из них {added_unique_count} уникальных'
             send_export = True
+            comparator.dump_to_tempfile('added')
+            comparator.dump_to_tempfile('removed')
+
+            message = f'Обновились данные по категориям на Wildberries. C последнего  обновления добавилось ' \
+                      f'{added_count} категорий, из них {added_unique_count} уникальных. Скрылось ' \
+                      f'{removed_count} категорий'
 
         for uid in get_cat_update_users():
             bot.send_message(chat_id=uid, text=message)
             if send_export is True:
-                bot.send_document(chat_id=uid, document=comparator.get_from_tempfile())
+                bot.send_document(chat_id=uid, document=comparator.get_from_tempfile('added'))
+                bot.send_document(chat_id=uid, document=comparator.get_from_tempfile('removed'))
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({'status': 'ok'})

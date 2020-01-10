@@ -59,9 +59,24 @@ class WbCategoryComparator:
     def __init__(self):
         self.categories_old = []
         self.categories_new = []
-        self.diff = pd.DataFrame()
-        self.diff_unique = pd.DataFrame()
-        self.tmp_file = None
+
+        self.diff = {
+            'added': pd.DataFrame(),
+            'removed': pd.DataFrame(),
+            'full': pd.DataFrame()
+        }
+
+        self.diff_unique = {
+            'added': pd.DataFrame(),
+            'removed': pd.DataFrame(),
+            'full': pd.DataFrame()
+        }
+
+        self.tmp_file = {
+            'added': None,
+            'removed': None,
+            'full': None
+        }
 
     def load_from_api(self):
         """
@@ -94,6 +109,11 @@ class WbCategoryComparator:
         self.categories_new = l_2
         return self
 
+    def calculate_diff(self):
+        self.calculate_added_diff()
+        self.calculate_removed_diff()
+        self.calculate_full_diff()
+
     def calculate_full_diff(self):
         """
         Retrieve all different values from two dictionaries
@@ -110,8 +130,8 @@ class WbCategoryComparator:
 
         ri = df.reindex(diff_indexes)
 
-        self.diff = ri.groupby('wb_category_url', as_index=False).first()
-        self.diff_unique = self.diff.groupby('wb_category_name', as_index=False).first()
+        self.diff['full'] = ri.groupby('wb_category_url', as_index=False).first()
+        self.diff_unique['full'] = self.diff['full'].groupby('wb_category_name', as_index=False).first()
 
         return self
 
@@ -124,7 +144,8 @@ class WbCategoryComparator:
         df_new = pd.DataFrame(self.categories_new, columns=self._columns)
 
         df_diff = pd.merge(df_new, df_old, how='outer', indicator=True)
-        self.diff = df_diff.loc[df_diff._merge == 'left_only', self._columns]
+        self.diff['added'] = df_diff.loc[df_diff._merge == 'left_only', self._columns]
+        self.diff_unique['added'] = self.diff['added'].groupby('wb_category_name', as_index=False).first()
 
         return self
 
@@ -137,21 +158,36 @@ class WbCategoryComparator:
         df_new = pd.DataFrame(self.categories_new, columns=self._columns)
 
         df_diff = pd.merge(df_old, df_new, how='outer', indicator=True)
-        self.diff = df_diff.loc[df_diff._merge == 'left_only', self._columns]
+        self.diff['removed'] = df_diff.loc[df_diff._merge == 'left_only', self._columns]
+        self.diff_unique['removed'] = self.diff['removed'].groupby('wb_category_name', as_index=False).first()
 
         return self
 
-    def get_categories_count(self) -> int:
-        return len(self.diff)
+    def get_categories_count(self, _type=None) -> int:
+        if _type is None:
+            raise Exception('type is not defined')
 
-    def get_unique_categories_count(self) -> int:
-        return len(self.diff)
+        return len(self.diff[_type])
 
-    def dump_to_tempfile(self, prefix=''):
-        self.tmp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix=prefix, mode='r+b')
-        self.diff.to_excel(self.tmp_file.name, index=None, header=True)
+    def get_categories_unique_count(self, _type=None) -> int:
+        if _type is None:
+            raise Exception('type is not defined')
+
+        return len(self.diff_unique[_type])
+
+    def dump_to_tempfile(self, _type=None):
+        if _type is None:
+            raise Exception('type is not defined')
+
+        prefix = _type + '_'
+        self.tmp_file[_type] = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix=prefix, mode='r+b')
+        self.diff[_type].to_excel(self.tmp_file[_type].name, index=None, header=True)
+
         return self
 
-    def get_from_tempfile(self):
-        self.tmp_file.seek(0)
-        return self.tmp_file
+    def get_from_tempfile(self, _type=None):
+        if _type is None:
+            raise Exception('type is not defined')
+
+        self.tmp_file[_type].seek(0)
+        return self.tmp_file[_type]
