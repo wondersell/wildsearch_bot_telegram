@@ -78,6 +78,12 @@ class CallbackTelegramWebhook(object):
         resp.body = json.dumps({'status': 'ok'})
 
 
+class CallbackIndex(object):
+    def on_get(self, req, resp):
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps({'status': 'lucky_you'})
+
+
 bot = Bot(env('TELEGRAM_API_TOKEN'))
 reset_webhook(bot, env('WILDSEARCH_WEBHOOKS_DOMAIN'), env('TELEGRAM_API_TOKEN'))
 bot_dispatcher = start_bot(bot)
@@ -88,3 +94,4 @@ app.req_options.auto_parse_form_urlencoded = True
 app.add_route('/callback/category_export', CallbackCategoryExportResource())
 app.add_route('/callback/category_list', CallbackCategoryListResource())
 app.add_route('/' + env('TELEGRAM_API_TOKEN'), CallbackTelegramWebhook())
+app.add_route('/', CallbackIndex())

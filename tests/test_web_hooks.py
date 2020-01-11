@@ -65,3 +65,10 @@ def test_telegram_webhook(mocked_de_json, mocked_process_update, web_app):
         mocked_de_json.assert_called()
         mocked_process_update.assert_called()
         assert got.status_code == 200
+
+
+def test_index_page(web_app):
+    got = web_app.simulate_get('/')
+
+    assert got.status_code == 200
+    assert 'lucky_you' in got.text
