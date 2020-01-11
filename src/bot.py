@@ -5,7 +5,7 @@ from telegram.ext import MessageHandler, Filters, Dispatcher
 from .scrapinghub_helper import *
 
 
-def catalog(update, context):
+def catalog(bot,update):
     try:
         job_url = schedule_category_export(update.message.text, update.message.chat_id)
         update.message.reply_text(f"Вы запросили анализ каталога, он будет доступен по ссылке {job_url}")
@@ -13,7 +13,7 @@ def catalog(update, context):
         update.message.reply_text(f"Произошла ошибка при запросе каталога, попробуйте запросить его позже")
 
 
-def rnd(update, context):
+def rnd(bot,update):
     """Send random message."""
     messages = [
         'Понятия не имею о чем ты',
