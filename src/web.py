@@ -2,9 +2,11 @@ import json
 
 import falcon
 from sentry_sdk.integrations.falcon import FalconIntegration
-from telegram import Bot
+from telegram import Bot, Update
+from envparse import env
 
 from .scrapinghub_helper import *
+from .bot import reset_webhook, start_bot
 
 # загружаем конфиг
 env.read_envfile()
@@ -68,10 +70,21 @@ class CallbackCategoryListResource(object):
         resp.body = json.dumps({'status': 'ok'})
 
 
+class CallbackTelegramWebhook(object):
+    def on_post(self, req, resp):
+        bot_dispatcher.process_update(Update.de_json(json.load(req.bounded_stream), bot))
+
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps({'status': 'ok'})
+
+
 bot = Bot(env('TELEGRAM_API_TOKEN'))
+reset_webhook(bot, env('WILDSEARCH_WEBHOOKS_DOMAIN'), env('TELEGRAM_API_TOKEN'))
+bot_dispatcher = start_bot(bot)
 
 app = falcon.API()
 app.req_options.auto_parse_form_urlencoded = True
 
 app.add_route('/callback/category_export', CallbackCategoryExportResource())
 app.add_route('/callback/category_list', CallbackCategoryListResource())
+app.add_route('/' + env('TELEGRAM_API_TOKEN'), CallbackTelegramWebhook())

@@ -2,10 +2,6 @@ build:
   docker:
     bot: src/Dockerfile_heroku
 run:
-  bot:
-    command:
-      - python -m srv.app
-    image: bot
   web:
     command:
       - uwsgi --http 0:$PORT --module srv.web:app --master --processes 4 --threads 2
