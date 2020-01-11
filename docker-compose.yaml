@@ -1,15 +1,6 @@
 version: '3.6'
 
 services:
-  bot:
-    build: ./src
-    restart: always
-    command: python -m srv.app
-    volumes:
-      - ./src:/srv:delegated
-    env_file:
-      - ./.env
-
   hook_catcher:
     build: ./src
     restart: always
