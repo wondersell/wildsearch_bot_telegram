@@ -1,11 +1,12 @@
 import random
 
-from telegram.ext import MessageHandler, Filters, Dispatcher
+from telegram import Update
+from telegram.ext import MessageHandler, Filters, Dispatcher, CallbackContext
 
 from .scrapinghub_helper import *
 
 
-def catalog(bot, update):
+def catalog(update: Update, context: CallbackContext):
     try:
         job_url = schedule_category_export(update.message.text, update.message.chat_id)
         update.message.reply_text(f"Вы запросили анализ каталога, он будет доступен по ссылке {job_url}")
@@ -13,7 +14,7 @@ def catalog(bot, update):
         update.message.reply_text(f"Произошла ошибка при запросе каталога, попробуйте запросить его позже")
 
 
-def rnd(bot, update):
+def rnd(update: Update, context: CallbackContext):
     """Send random message."""
     messages = [
         'Понятия не имею о чем ты',
@@ -36,7 +37,7 @@ def reset_webhook(bot, url, token):
 
 
 def start_bot(bot):
-    dp = Dispatcher(bot, None, workers=0)
+    dp = Dispatcher(bot, None, workers=0, use_context=True)
     dp.add_handler(MessageHandler(Filters.text & Filters.regex('www\.wildberries\.ru/catalog/'), catalog))
     dp.add_handler(MessageHandler(Filters.text, rnd))
     return dp
