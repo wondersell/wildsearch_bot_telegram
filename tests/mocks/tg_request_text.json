@@ -1,0 +1,23 @@
+{
+    "update_id": 696748726,
+    "message": {
+        "message_id": 9,
+        "from": {
+            "id": 383716,
+            "is_bot": false,
+            "first_name": "Артём",
+            "last_name": "Киселёв",
+            "username": "hemantic",
+            "language_code": "en"
+        },
+        "chat": {
+            "id": 383716,
+            "first_name": "Артём",
+            "last_name": "Киселёв",
+            "username": "hemantic",
+            "type": "private"
+        },
+        "date": 1578838812,
+        "text": "Как дела, потомки?"
+    }
+}

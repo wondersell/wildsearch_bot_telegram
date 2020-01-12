@@ -1,16 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from falcon import testing
 from envparse import env
-
-import src.web
-import pathlib
-
-
-@pytest.fixture()
-def web_app():
-    return testing.TestClient(src.web.app)
 
 
 @pytest.fixture()
@@ -24,6 +15,7 @@ def bot_app(bot):
 @pytest.fixture
 def bot():
     """Mocked instance of the bot"""
+
     class Bot:
         send_message = MagicMock()
 
@@ -58,7 +50,7 @@ def test_category_list_hook(mocked_send_document, mocked_send_message, web_app):
 @patch('telegram.ext.Dispatcher.process_update')
 @patch('telegram.Update.de_json')
 def test_telegram_webhook(mocked_de_json, mocked_process_update, web_app):
-    with open('tests/sample_telegram_request.json') as f:
+    with open('tests/mocks/tg_request_text.json') as f:
         json_body = f.read()
         got = web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=json_body)
 
