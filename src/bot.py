@@ -3,15 +3,11 @@ import random
 from telegram import Update
 from telegram.ext import MessageHandler, Filters, Dispatcher, CallbackContext
 
-from .scrapinghub_helper import *
+from . import tasks
 
 
 def catalog(update: Update, context: CallbackContext):
-    try:
-        job_url = schedule_category_export(update.message.text, update.message.chat_id)
-        update.message.reply_text(f"Вы запросили анализ каталога, он будет доступен по ссылке {job_url}")
-    except Exception as e:
-        update.message.reply_text(f"Произошла ошибка при запросе каталога, попробуйте запросить его позже")
+    tasks.schedule_category_export(update.message.text, update.message.chat_id)
 
 
 def rnd(update: Update, context: CallbackContext):

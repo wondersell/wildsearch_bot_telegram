@@ -34,7 +34,7 @@ def scheduled_jobs_count(sh, spider) -> int:
     return spider.jobs.count(state='pending') + spider.jobs.count(state='running')
 
 
-def schedule_category_export(url, chat_id) -> str:
+def category_export(url, chat_id) -> str:
     """
     Schedule WB category export on Scrapinghub
     """

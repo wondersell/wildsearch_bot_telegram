@@ -1,7 +1,7 @@
 version: '3.6'
 
 services:
-  hook_catcher:
+  web:
     build: ./src
     restart: always
     command: uwsgi --http :8000 --module srv.web:app --workers 2 --threads 2
@@ -11,6 +11,20 @@ services:
       - ./.env
     ports:
       - 80:8000
+
+  worker:
+    build: ./src
+    restart: always
+    command: celery -A srv.tasks worker
+    environment:
+      - C_FORCE_ROOT=on
+    env_file:
+      - ./.env
+    links:
+      - redis
+
+  redis:
+    image: redis:4-alpine
 
   # Зачем в этой схеме нужен Nginx я пока не решил
   #nginx:
