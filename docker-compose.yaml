@@ -23,6 +23,17 @@ services:
     links:
       - redis
 
+  flower:
+    build: ./src
+    restart: always
+    command: celery -A srv.celery flower --port=5555
+    links:
+      - redis
+    env_file:
+      - ./.env
+    ports:
+      - 5555:5555
+
   redis:
     image: redis:4-alpine
 
