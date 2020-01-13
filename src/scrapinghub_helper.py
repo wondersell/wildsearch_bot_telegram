@@ -1,8 +1,11 @@
 import logging
 import tempfile
+import boto3
+import os
 
 import pandas as pd
 import sentry_sdk
+from botocore.exceptions import ClientError
 from envparse import env
 from scrapinghub import ScrapinghubClient
 from urllib.parse import urlunparse, urlencode, quote
@@ -19,6 +22,9 @@ logger = logging.getLogger(__name__)
 # включаем Sentry
 if env('SENTRY_DSN', default=None) is not None:
     sentry_sdk.init(env('SENTRY_DSN'))
+
+# инициализируем S3
+s3 = boto3.client('s3')
 
 
 def init_scrapinghub():
@@ -91,7 +97,7 @@ class WbCategoryComparator:
 
         self.diff = self.fill_types_with(pd.DataFrame())
         self.diff_unique = self.fill_types_with(pd.DataFrame())
-        self.tmp_file = self.fill_types_with(None)
+        self.s3_files = self.fill_types_with(None)
 
     def load_from_api(self):
         """
@@ -210,19 +216,28 @@ class WbCategoryComparator:
 
         return len(self.diff_unique[_type])
 
-    def dump_to_tempfile(self, _type=None):
+    def dump_to_s3_file(self, _type=None):
         if _type is None:
             raise Exception('type is not defined')
 
         prefix = _type + '_'
-        self.tmp_file[_type] = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix=prefix, mode='r+b')
-        self.diff[_type].to_excel(self.tmp_file[_type].name, index=None, header=True)
+        temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix=prefix, mode='r+b', delete=True)
+        temp_file_name = os.path.basename(temp_file.name)
+
+        self.diff[_type].to_excel(temp_file.name, index=None, header=True)
+
+        try:
+            response = s3.upload_file(temp_file.name, env('AWS_S3_BUCKET_NAME'), temp_file_name)
+        except ClientError as e:
+            logging.error(e)
+            return False
+
+        self.s3_files[_type] = temp_file_name
 
         return self
 
-    def get_from_tempfile(self, _type=None):
+    def get_s3_file_name(self, _type=None):
         if _type is None:
             raise Exception('type is not defined')
 
-        self.tmp_file[_type].seek(0)
-        return self.tmp_file[_type]
+        return self.s3_files[_type]

@@ -37,12 +37,11 @@ def test_category_export_finished_hook_correct(mocked_send_message, web_app):
     assert 'ok' in got.text
 
 
-@patch('telegram.Bot.send_message')
-@patch('telegram.Bot.send_document')
-def test_category_list_hook(mocked_send_document, mocked_send_message, web_app):
+@patch('src.tasks.calculate_wb_category_diff.delay')
+def test_category_list_hook(mocked_calculate_diff, web_app):
     got = web_app.simulate_post('/callback/category_list')
 
-    mocked_send_message.assert_called()
+    mocked_calculate_diff.assert_called()
     assert got.status_code == 200
     assert 'ok' in got.text
 

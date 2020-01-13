@@ -11,8 +11,4 @@ RUN pip install uwsgi
 
 RUN mkdir -p /srv
 
-# Run the image as a non-root user
-RUN adduser -D wildsearch_bot
-USER wildsearch_bot
-
 WORKDIR /

@@ -15,7 +15,9 @@ services:
   worker:
     build: ./src
     restart: always
-    command: celery -A srv.tasks worker
+    command: celery -A srv.tasks:celery worker
+    volumes:
+      - ./src:/srv:delegated
     environment:
       - C_FORCE_ROOT=on
     env_file:
@@ -26,7 +28,9 @@ services:
   flower:
     build: ./src
     restart: always
-    command: celery -A srv.celery flower --port=5555
+    command: celery -A srv.tasks:celery flower --port=5555
+    volumes:
+      - ./src:/srv:delegated
     links:
       - redis
     env_file:

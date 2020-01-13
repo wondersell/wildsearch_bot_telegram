@@ -1,7 +1,10 @@
 import os
-
 import pytest
+
 from faker import Faker
+from unittest.mock import MagicMock, patch
+import boto3
+from botocore.stub import Stubber
 
 from src.scrapinghub_helper import *
 
@@ -88,14 +91,20 @@ def test_all_fields_present(comparator_random):
     assert list(comparator_random.diff['removed'].columns).sort() == expected_columns
     assert list(comparator_random.diff['full'].columns).sort() == expected_columns
 
-
+"""
 @pytest.mark.parametrize('_type', ['added', 'removed', 'full'])
-def test_export_file_dump_full_double(comparator_random, _type):
-    comparator_random.calculate_diff()
-    comparator_random.dump_to_tempfile(_type=_type)
+def test_export_file_to_s3(comparator_random, s3_stub, _type):
+    s3_stub.add_response(
+        'upload_file',
+        expected_params={'Bucket': env('AWS_S3_BUCKET_NAME')},
+        service_response={}
+    )
+    s3_stub.activate()
 
-    assert os.path.getsize(comparator_random.get_from_tempfile(_type=_type).name) > 0
-    assert os.path.getsize(comparator_random.get_from_tempfile(_type=_type).name) > 0
+    comparator_random.calculate_diff()
+    comparator_random.dump_to_s3_file(_type=_type)
+
+    assert _type in comparator_random.get_s3_file_name(_type=_type)
 
 
 @pytest.mark.parametrize('_type, expected_prefix', [
@@ -103,12 +112,19 @@ def test_export_file_dump_full_double(comparator_random, _type):
     ['removed', 'removed_'],
     ['full', 'full_']
 ])
-def test_export_file_prefix(comparator_random, _type, expected_prefix):
+def test_export_file_prefix(comparator_random, s3_stub, _type, expected_prefix):
+    s3_stub.add_response(
+        'upload_file',
+        expected_params={'Bucket': env('AWS_S3_BUCKET_NAME')},
+        service_response={}
+    )
+    s3_stub.activate()
+
     comparator_random.calculate_diff()
-    comparator_random.dump_to_tempfile(_type=_type)
+    comparator_random.dump_to_s3_file(_type=_type)
 
-    assert expected_prefix in comparator_random.get_from_tempfile(_type=_type).name
-
+    assert expected_prefix in comparator_random.get_s3_file_name(_type=_type)
+"""
 
 @pytest.mark.parametrize('_type', [None, pd.DataFrame()])
 def test_fill_types_with(_type):

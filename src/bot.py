@@ -7,7 +7,7 @@ from . import tasks
 
 
 def catalog(update: Update, context: CallbackContext):
-    tasks.schedule_category_export(update.message.text, update.message.chat_id)
+    tasks.schedule_category_export.delay(update.message.text, update.message.chat_id)
 
 
 def rnd(update: Update, context: CallbackContext):
