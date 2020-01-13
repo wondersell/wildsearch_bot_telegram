@@ -13,4 +13,3 @@ run:
     command:
       - celery -A srv.tasks worker
     image: bot
-  celery-flower:
