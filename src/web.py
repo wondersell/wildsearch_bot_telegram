@@ -37,7 +37,7 @@ class CallbackCategoryExportResource(object):
 
 class CallbackCategoryListResource(object):
     def on_post(self, req, resp):
-        tasks.calculate_wb_category_diff.delay(countdown=60)
+        tasks.calculate_wb_category_diff.delay(countdown=600)
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps({'status': 'ok'})
