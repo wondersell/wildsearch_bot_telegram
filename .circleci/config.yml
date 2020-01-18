@@ -50,6 +50,7 @@ jobs:
             python3 -m venv venv
             . venv/bin/activate
             pytest --cov-report=xml --cov=src tests/
+            codecov
 
   deploy:
     executor: heroku/default # Uses the basic buildpack-deps image, which has the prerequisites for installing heroku's CLI.
