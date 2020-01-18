@@ -6,6 +6,9 @@ orbs:
 defaults: &defaults
   docker:
     - image: circleci/python:3.8-buster
+      environment:
+        - REDIS_URL=redis://redis:6379/0
+    - image: redis:alpine
 
 jobs:
   build:
