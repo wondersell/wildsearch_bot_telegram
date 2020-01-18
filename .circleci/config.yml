@@ -41,7 +41,7 @@ jobs:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            py.test -x
+            pytest -x
 
   deploy:
     executor: heroku/default # Uses the basic buildpack-deps image, which has the prerequisites for installing heroku's CLI.
