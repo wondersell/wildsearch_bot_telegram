@@ -31,9 +31,17 @@ jobs:
             - ./venv
           key: v1-dependencies-{{ checksum "src/requirements.txt" }}
 
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
   unittest:
     <<: *defaults
     steps:
+      - attach_workspace:
+          at: .
+
       - run:
           command: |
             python3 -m venv venv
