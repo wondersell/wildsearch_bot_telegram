@@ -1,0 +1,55 @@
+version: 2.1
+
+orbs:
+  heroku: circleci/heroku@1.0.0
+
+jobs:
+  build:
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "requirements.txt" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+
+      - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+
+  unittest:
+    steps:
+      - attach_workspace:
+          at: .
+
+      - run:
+          command: |
+            . venv/bin/activate
+            py.test -x
+
+  deploy:
+    executor: heroku/default # Uses the basic buildpack-deps image, which has the prerequisites for installing heroku's CLI.
+    steps:
+      - checkout
+      - heroku/install # Runs the heroku install command, if necessary.
+      - heroku/deploy-via-git: # Deploys branch to Heroku via git push.
+          only-branch: master # If you specify an only-branch, the deploy will not occur for any other branch.
+
+workflows:
+  continuous-delivery:
+    jobs:
+      - build
+      - unittest:
+          requires:
+            - build
+
+      - deploy
