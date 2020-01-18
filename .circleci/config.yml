@@ -3,8 +3,13 @@ version: 2.1
 orbs:
   heroku: circleci/heroku@1.0.0
 
+defaults: &defaults
+  docker:
+    - image: circleci/python:3.8-stretch
+
 jobs:
   build:
+    <<: *defaults
     steps:
       - checkout
 
@@ -27,6 +32,7 @@ jobs:
           key: v1-dependencies-{{ checksum "requirements.txt" }}
 
   unittest:
+    <<: *defaults
     steps:
       - attach_workspace:
           at: .
