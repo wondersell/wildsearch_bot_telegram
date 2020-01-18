@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  heroku: circleci/heroku@1.0.0
+  heroku: circleci/heroku@0.0.10
 
 defaults: &defaults
   docker:
