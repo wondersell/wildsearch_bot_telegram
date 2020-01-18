@@ -34,14 +34,11 @@ jobs:
   unittest:
     <<: *defaults
     steps:
-      - attach_workspace:
-          at: .
-
       - run:
           command: |
             python3 -m venv venv
             . venv/bin/activate
-            pytest -x
+            pytest
 
   deploy:
     executor: heroku/default # Uses the basic buildpack-deps image, which has the prerequisites for installing heroku's CLI.

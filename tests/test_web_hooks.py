@@ -37,7 +37,7 @@ def test_category_export_finished_hook_correct(mocked_send_message, web_app):
     assert 'ok' in got.text
 
 
-@patch('src.tasks.calculate_wb_category_diff.delay')
+@patch('src.tasks.calculate_wb_category_diff.apply_async')
 def test_category_list_hook(mocked_calculate_diff, web_app):
     got = web_app.simulate_post('/callback/category_list')
 
