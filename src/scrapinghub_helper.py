@@ -226,11 +226,7 @@ class WbCategoryComparator:
 
         self.diff[_type].to_excel(temp_file.name, index=None, header=True)
 
-        try:
-            response = s3.upload_file(temp_file.name, env('AWS_S3_BUCKET_NAME'), temp_file_name)
-        except ClientError as e:
-            logging.error(e)
-            return False
+        s3.upload_file(temp_file.name, env('AWS_S3_BUCKET_NAME'), temp_file_name)
 
         self.s3_files[_type] = temp_file_name
 
