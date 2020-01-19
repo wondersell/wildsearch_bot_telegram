@@ -65,36 +65,6 @@ def test_scrapinghub_init():
     assert 'project' in sc
 
 
-@patch('scrapinghub.client.jobs.Jobs.count')
-def test_scheduled_jobs_count(mocked_jobs_count):
-    mocked_jobs_count.return_value = 5
-
-    cnt = scheduled_jobs_count(init_scrapinghub(), 'wb')
-
-    assert cnt == 10
-
-
-@patch('scrapinghub.client.jobs.Jobs.count')
-def test_category_export_too_many_jobs_exception(mocked_jobs_count):
-    mocked_jobs_count.return_value = 5
-
-    with pytest.raises(Exception) as e_info:
-        category_export('https://www.wildberries.ru/category/dummy', 123)
-
-    assert str(e_info.value) == 'Spider wb has more than 1 queued jobs'
-
-
-@patch('scrapinghub.client.jobs.Jobs.count')
-@patch('scrapinghub.client.jobs.Jobs.run')
-def test_category_export_correct(mocked_jobs_run, mocked_jobs_count):
-    mocked_jobs_count.return_value = 0
-    mocked_jobs_run.return_value.key = '1423'
-
-    result_url = category_export('https://www.wildberries.ru/category/dummy', 123)
-
-    assert result_url == 'https://app.scrapinghub.com/p/1423'
-
-
 def test_load_from_lists(comparator):
     lists = make_categories(1, 2, 1)
 
