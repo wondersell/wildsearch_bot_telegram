@@ -5,7 +5,7 @@ from faker import Faker
 from unittest.mock import MagicMock, patch
 from src.tasks import calculate_wb_category_diff
 import boto3
-from botocore.stub import Stubber
+from botocore.stub import Stubber, ANY
 
 from src.scrapinghub_helper import *
 
@@ -185,15 +185,18 @@ def test_get_s3_file_name_incorrect_params(comparator_random):
     assert 'type is not defined' in str(execinfo.value)
 
 
-"""
+
 @pytest.mark.parametrize('_type', ['added', 'removed', 'full'])
 def test_export_file_to_s3(comparator_random, s3_stub, _type):
     s3_stub.add_response(
-        'upload_file',
-        expected_params={'Bucket': env('AWS_S3_BUCKET_NAME')},
+        'put_object',
+        expected_params={
+            'Bucket': env('AWS_S3_BUCKET_NAME'),
+            'Body': ANY,
+            'Key': ANY
+        },
         service_response={}
     )
-    s3_stub.activate()
 
     comparator_random.calculate_diff()
     comparator_random.dump_to_s3_file(_type=_type)
@@ -208,17 +211,19 @@ def test_export_file_to_s3(comparator_random, s3_stub, _type):
 ])
 def test_export_file_prefix(comparator_random, s3_stub, _type, expected_prefix):
     s3_stub.add_response(
-        'upload_file',
-        expected_params={'Bucket': env('AWS_S3_BUCKET_NAME')},
+        'put_object',
+        expected_params={
+            'Bucket': env('AWS_S3_BUCKET_NAME'),
+            'Body': ANY,
+            'Key': ANY
+        },
         service_response={}
     )
-    s3_stub.activate()
 
     comparator_random.calculate_diff()
     comparator_random.dump_to_s3_file(_type=_type)
 
     assert expected_prefix in comparator_random.get_s3_file_name(_type=_type)
-"""
 
 
 @patch('src.tasks.get_cat_update_users')
