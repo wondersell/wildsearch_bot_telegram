@@ -52,6 +52,9 @@ jobs:
             pytest --cov-report=xml --cov=src tests/
             codecov
 
+      - store_test_results:
+          path: test-results
+
   deploy:
     executor: heroku/default # Uses the basic buildpack-deps image, which has the prerequisites for installing heroku's CLI.
     steps:
