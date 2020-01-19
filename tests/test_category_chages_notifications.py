@@ -49,6 +49,43 @@ def comparator_random():
     return comparator
 
 
+def test_scrapinghub_init():
+    sc = init_scrapinghub()
+
+    assert 'client' in sc
+    assert 'project' in sc
+
+
+@patch('scrapinghub.client.jobs.Jobs.count')
+def test_scheduled_jobs_count(mocked_jobs_count):
+    mocked_jobs_count.return_value = 5
+
+    cnt = scheduled_jobs_count(init_scrapinghub(), 'wb')
+
+    assert cnt == 10
+
+
+@patch('scrapinghub.client.jobs.Jobs.count')
+def test_category_export_too_many_jobs_exception(mocked_jobs_count):
+    mocked_jobs_count.return_value = 5
+
+    with pytest.raises(Exception) as e_info:
+        category_export('https://www.wildberries.ru/category/dummy', 123)
+
+    assert str(e_info.value) == 'Spider wb has more than 1 queued jobs'
+
+
+@patch('scrapinghub.client.jobs.Jobs.count')
+@patch('scrapinghub.client.jobs.Jobs.run')
+def test_category_export_correct(mocked_jobs_run, mocked_jobs_count):
+    mocked_jobs_count.return_value = 0
+    mocked_jobs_run.return_value.key = '1423'
+
+    result_url = category_export('https://www.wildberries.ru/category/dummy', 123)
+
+    assert result_url == 'https://app.scrapinghub.com/p/1423'
+
+
 def test_load_from_lists(comparator):
     lists = make_categories(1, 2, 1)
 
@@ -83,6 +120,14 @@ def test_get_category_count_raises_exception(comparator_random):
     assert 'type is not defined' in str(execinfo.value)
 
 
+def test_get_categories_unique_count_raises_exception(comparator_random):
+    comparator_random.calculate_diff()
+    with pytest.raises(Exception) as execinfo:
+        comparator_random.get_categories_unique_count()
+
+    assert 'type is not defined' in str(execinfo.value)
+
+
 def test_all_fields_present(comparator_random):
     expected_columns = WbCategoryComparator._columns.sort()
     comparator_random.calculate_diff()
@@ -91,40 +136,6 @@ def test_all_fields_present(comparator_random):
     assert list(comparator_random.diff['removed'].columns).sort() == expected_columns
     assert list(comparator_random.diff['full'].columns).sort() == expected_columns
 
-"""
-@pytest.mark.parametrize('_type', ['added', 'removed', 'full'])
-def test_export_file_to_s3(comparator_random, s3_stub, _type):
-    s3_stub.add_response(
-        'upload_file',
-        expected_params={'Bucket': env('AWS_S3_BUCKET_NAME')},
-        service_response={}
-    )
-    s3_stub.activate()
-
-    comparator_random.calculate_diff()
-    comparator_random.dump_to_s3_file(_type=_type)
-
-    assert _type in comparator_random.get_s3_file_name(_type=_type)
-
-
-@pytest.mark.parametrize('_type, expected_prefix', [
-    ['added', 'added_'],
-    ['removed', 'removed_'],
-    ['full', 'full_']
-])
-def test_export_file_prefix(comparator_random, s3_stub, _type, expected_prefix):
-    s3_stub.add_response(
-        'upload_file',
-        expected_params={'Bucket': env('AWS_S3_BUCKET_NAME')},
-        service_response={}
-    )
-    s3_stub.activate()
-
-    comparator_random.calculate_diff()
-    comparator_random.dump_to_s3_file(_type=_type)
-
-    assert expected_prefix in comparator_random.get_s3_file_name(_type=_type)
-"""
 
 @pytest.mark.parametrize('_type', [None, pd.DataFrame()])
 def test_fill_types_with(_type):
@@ -175,3 +186,57 @@ def test_category_type_field_present(comparator_random, _type):
 
     assert 'wb_category_type' in comparator_random.diff[_type].columns
     assert comparator_random.diff[_type].iloc[0].at['wb_category_type'] in ['Новинки', 'Промо', 'Обычная']
+
+
+def test_dump_to_s3_file_incorrect_params(comparator_random):
+    comparator_random.calculate_diff()
+
+    with pytest.raises(Exception) as execinfo:
+        comparator_random.dump_to_s3_file()
+
+    assert 'type is not defined' in str(execinfo.value)
+
+
+def get_s3_file_name_incorrect_params(comparator_random):
+    comparator_random.calculate_diff()
+
+    with pytest.raises(Exception) as execinfo:
+        comparator_random.get_s3_file_name()
+
+    assert 'type is not defined' in str(execinfo.value)
+
+
+"""
+@pytest.mark.parametrize('_type', ['added', 'removed', 'full'])
+def test_export_file_to_s3(comparator_random, s3_stub, _type):
+    s3_stub.add_response(
+        'upload_file',
+        expected_params={'Bucket': env('AWS_S3_BUCKET_NAME')},
+        service_response={}
+    )
+    s3_stub.activate()
+
+    comparator_random.calculate_diff()
+    comparator_random.dump_to_s3_file(_type=_type)
+
+    assert _type in comparator_random.get_s3_file_name(_type=_type)
+
+
+@pytest.mark.parametrize('_type, expected_prefix', [
+    ['added', 'added_'],
+    ['removed', 'removed_'],
+    ['full', 'full_']
+])
+def test_export_file_prefix(comparator_random, s3_stub, _type, expected_prefix):
+    s3_stub.add_response(
+        'upload_file',
+        expected_params={'Bucket': env('AWS_S3_BUCKET_NAME')},
+        service_response={}
+    )
+    s3_stub.activate()
+
+    comparator_random.calculate_diff()
+    comparator_random.dump_to_s3_file(_type=_type)
+
+    assert expected_prefix in comparator_random.get_s3_file_name(_type=_type)
+"""
