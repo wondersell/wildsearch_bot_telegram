@@ -1,8 +1,8 @@
-import sentry_sdk
-import boto3
-import tempfile
-import logging
 import io
+import logging
+
+import boto3
+import sentry_sdk
 from celery import Celery
 from envparse import env
 from sentry_sdk.integrations.celery import CeleryIntegration
@@ -72,11 +72,12 @@ def schedule_category_export(category_url, chat_id):
     try:
         job_url = category_export(category_url, chat_id)
         message = f"Вы запросили анализ каталога, он будет доступен по ссылке {job_url}"
-        bot.send_message(chat_id=chat_id, text=message)
     except Exception as e:
         message = f"Произошла ошибка при запросе каталога, попробуйте запросить его позже"
-        bot.send_message(chat_id=chat_id, text=message)
+
         pass
+
+    bot.send_message(chat_id=chat_id, text=message)
 
 
 @celery.task()
