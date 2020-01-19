@@ -197,7 +197,7 @@ def test_dump_to_s3_file_incorrect_params(comparator_random):
     assert 'type is not defined' in str(execinfo.value)
 
 
-def get_s3_file_name_incorrect_params(comparator_random):
+def test_get_s3_file_name_incorrect_params(comparator_random):
     comparator_random.calculate_diff()
 
     with pytest.raises(Exception) as execinfo:
