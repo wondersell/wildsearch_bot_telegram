@@ -9,6 +9,8 @@ services:
       - ./src:/srv:delegated
     env_file:
       - ./.env
+    links:
+      - mongo
     ports:
       - 80:8000
 
@@ -24,6 +26,7 @@ services:
       - ./.env
     links:
       - redis
+      - mongo
 
   flower:
     build: ./src
@@ -40,6 +43,16 @@ services:
 
   redis:
     image: redis:4-alpine
+
+  mongo:
+    image: mongo:4.2.2-bionic
+    restart: always
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=wildsearch_mongo_user
+      - MONGO_INITDB_ROOT_PASSWORD=wildsearch_mongo_password
+      - MONGO_INITDB_DATABASE=wildsearch_mongo_db
+    ports:
+      - 27017:27017
 
   # Зачем в этой схеме нужен Nginx я пока не решил
   #nginx:
