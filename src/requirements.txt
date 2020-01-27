@@ -17,3 +17,6 @@ redis==3.3.11
 boto3==1.11.0
 coverage==5.0.3
 codecov
+mongoengine==0.19.1
+mongomock==3.18.0
+freezegun==0.3.14
