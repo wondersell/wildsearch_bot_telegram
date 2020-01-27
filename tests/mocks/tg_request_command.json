@@ -1,0 +1,30 @@
+{
+    "update_id": 736079298,
+    "message": {
+        "message_id": 36,
+        "from": {
+            "id": 383716,
+            "is_bot": false,
+            "first_name": "Артём",
+            "last_name": "Киселёв",
+            "username": "hemantic",
+            "language_code": "en"
+        },
+        "chat": {
+            "id": 383716,
+            "first_name": "Артём",
+            "last_name": "Киселёв",
+            "username": "hemantic",
+            "type": "private"
+        },
+        "date": 1580160960,
+        "text": "/start",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}
