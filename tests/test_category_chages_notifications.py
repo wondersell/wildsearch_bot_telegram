@@ -1,13 +1,11 @@
-import os
-import pytest
+from unittest.mock import patch
 
+import pytest
+from botocore.stub import ANY
 from faker import Faker
-from unittest.mock import MagicMock, patch
-from src.tasks import calculate_wb_category_diff
-import boto3
-from botocore.stub import Stubber, ANY
 
 from src.scrapinghub_helper import *
+from src.tasks import calculate_wb_category_diff
 
 fake = Faker()
 fake.seed(0)

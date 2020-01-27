@@ -1,7 +1,9 @@
+from unittest.mock import patch
+
 import pytest
-from src.tasks import get_cat_update_users, schedule_category_export
+
 from src.scrapinghub_helper import *
-from unittest.mock import Mock, MagicMock, patch
+from src.tasks import get_cat_update_users, schedule_category_export
 
 
 @patch('scrapinghub.client.jobs.Jobs.count')
