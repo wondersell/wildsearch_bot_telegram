@@ -53,12 +53,14 @@ services:
       - MONGO_INITDB_DATABASE=wildsearch_mongo_db
     ports:
       - 27017:27017
+    volumes:
+      - ./docker-configs/mongodb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
   # Зачем в этой схеме нужен Nginx я пока не решил
   #nginx:
   #  image: nginx:1.13-alpine
   #  volumes:
-  #    - ./dist/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  #    - ./docker-configs/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
   #  depends_on:
   #    - hook_catcher
   #  ports:
