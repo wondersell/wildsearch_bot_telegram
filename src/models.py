@@ -1,5 +1,6 @@
 import datetime
 
+from telegram import Update
 from mongoengine import *
 from envparse import env
 
@@ -9,14 +10,21 @@ env.read_envfile()
 connect(host=env('MONGODB_URI'))
 
 
-def user_get_or_created(*args, **kwargs):
-    matched = User.objects(*args, **kwargs)
+def user_get_by(*args, **kwargs):
+    return User.objects(*args, **kwargs).first()
+
+
+def user_get_by_update(update: Update):
+    matched = User.objects(chat_id=update.message.chat_id)
 
     if matched.count():
         return matched.first()
-    else:
-        return User(*args, **kwargs).save()
 
+    return User(
+        chat_id=update.message.chat_id,
+        user_name=update.message.from_user.username,
+        full_name=update.message.from_user.first_name + ' ' + update.message.from_user.last_name
+    ).save()
 
 
 class User(Document):
