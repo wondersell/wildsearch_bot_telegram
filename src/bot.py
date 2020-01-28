@@ -1,12 +1,23 @@
 import random
+import logging
 
 from telegram import Update
 from telegram.ext import MessageHandler, Filters, Dispatcher, CallbackContext, CommandHandler
+from .models import *
 
 from . import tasks
 
+# включаем логи
+logger = logging.getLogger(__name__)
+
 
 def start(update: Update, context: CallbackContext):
+    logger.info('Start command received')
+
+    user = user_get_by_update(update)
+
+    update.message.reply_text(f'Привет, {user.user_name}! Вот возможные команды:')
+
     update.message.reply_text('1. 🗄Обновления категорий WB,\n2. 📊Анализ выбранной категории,\n3. ⭐️Следить за категорией,\n4. 🛍Следить за товаром\n5. 💁‍♀️Инфо')
 
 
