@@ -2,7 +2,6 @@ import io
 import logging
 
 import boto3
-import sentry_sdk
 from celery import Celery
 from envparse import env
 from sentry_sdk.integrations.celery import CeleryIntegration
@@ -21,13 +20,7 @@ celery.conf.update(
 )
 
 # включаем логи
-logging.basicConfig(format='[%(asctime)s][%(levelname)s] %(message)s',
-                    level=logging.INFO)
-
 logger = logging.getLogger(__name__)
-
-if env('SENTRY_DSN', default=None) is not None:
-    sentry_sdk.init(env('SENTRY_DSN'), integrations=[CeleryIntegration()])
 
 bot = Bot(env('TELEGRAM_API_TOKEN'))
 s3 = boto3.client('s3')
