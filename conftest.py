@@ -40,8 +40,23 @@ def telegram_json_command():
 
 
 @pytest.fixture
-def telegram_update(telegram_json_message, telegram_json_command):
-    def _telegram_update(command=None, message=None):
+def telegram_json_callback():
+    def _telegram_json_command(callback=None):
+        with open('tests/mocks/tg_request_callback.json') as f:
+            json_body = f.read()
+            json_data = json.loads(json_body)
+
+            if callback is not None:
+                json_data['callback_query']['data'] = callback
+
+            return json.dumps(json_data)
+
+    return _telegram_json_command
+
+
+@pytest.fixture
+def telegram_update(telegram_json_message, telegram_json_command, telegram_json_callback):
+    def _telegram_update(command=None, message=None, callback=None):
         telegram_json = telegram_json_message()
 
         if command is not None:
@@ -49,6 +64,9 @@ def telegram_update(telegram_json_message, telegram_json_command):
 
         if message is not None:
             telegram_json = telegram_json_message(message)
+
+        if callback is not None:
+            telegram_json = telegram_json_callback(callback)
 
         bot = Bot(env('TELEGRAM_API_TOKEN'))
         update = Update.de_json(json.loads(telegram_json), bot)

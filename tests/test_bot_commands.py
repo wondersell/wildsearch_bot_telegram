@@ -51,3 +51,58 @@ def test_create_update_from_json_mock(telegram_json_command):
 
     assert isinstance(update, Update)
     assert update.message.text == '/start'
+
+
+@patch('telegram.Bot.send_message')
+@patch('logging.Logger.info')
+def test_command_follow_category_updates(mocked_logger_info, mocked_bot_send_message, web_app, telegram_json_callback):
+    telegram_json = telegram_json_callback(callback='keyboard_follow_categories_updates')
+
+    web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
+
+    #mocked_bot_send_message.assert_called()
+    mocked_logger_info.assert_called_with('Follow categories updates command received')
+
+
+@patch('telegram.Bot.send_message')
+@patch('logging.Logger.info')
+def test_command_analyse_category(mocked_logger_info, mocked_bot_send_message, web_app, telegram_json_callback):
+    telegram_json = telegram_json_callback(callback='keyboard_analyse_category')
+
+    web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
+
+    #mocked_bot_send_message.assert_called()
+    mocked_logger_info.assert_called_with('Analyse category command received')
+
+
+@patch('telegram.Bot.send_message')
+@patch('logging.Logger.info')
+def test_command_follow_one_category_updates(mocked_logger_info, mocked_bot_send_message, web_app, telegram_json_callback):
+    telegram_json = telegram_json_callback(callback='keyboard_follow_one_category_updates')
+
+    web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
+
+    #mocked_bot_send_message.assert_called()
+    mocked_logger_info.assert_called_with('Follow one category updates command received')
+
+
+@patch('telegram.Bot.send_message')
+@patch('logging.Logger.info')
+def test_command_follow_sku_updates(mocked_logger_info, mocked_bot_send_message, web_app, telegram_json_callback):
+    telegram_json = telegram_json_callback(callback='keyboard_follow_sku_updates')
+
+    web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
+
+    #mocked_bot_send_message.assert_called()
+    mocked_logger_info.assert_called_with('Follow sku updates command received')
+
+
+@patch('telegram.Bot.send_message')
+@patch('logging.Logger.info')
+def test_command_info(mocked_logger_info, mocked_bot_send_message, web_app, telegram_json_callback):
+    telegram_json = telegram_json_callback(callback='keyboard_info')
+
+    web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
+
+    mocked_bot_send_message.assert_called()
+    mocked_logger_info.assert_called_with('Info command received')

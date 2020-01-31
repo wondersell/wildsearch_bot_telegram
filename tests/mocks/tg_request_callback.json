@@ -1,0 +1,34 @@
+{
+    "update_id": 736079341,
+    "callback_query": {
+        "id": "1648050674863765",
+        "from": {
+            "id": 383716,
+            "is_bot": false,
+            "first_name": "Артём",
+            "last_name": "Киселёв",
+            "username": "hemantic",
+            "language_code": "en"
+        },
+        "message": {
+            "message_id": 83,
+            "from": {
+                "id": 982115507,
+                "is_bot": true,
+                "first_name": "Wildsearch edge",
+                "username": "wildsearch_edge_bot"
+            },
+            "chat": {
+                "id": 383716,
+                "first_name": "Артём",
+                "last_name": "Киселёв",
+                "username": "hemantic",
+                "type": "private"
+            },
+            "date": 1580227635,
+            "text": "Выберите:"
+        },
+        "chat_instance": "-4304799251541625846",
+        "data": "keyboard_info"
+    }
+}
