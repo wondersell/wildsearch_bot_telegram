@@ -1,7 +1,7 @@
 import random
 import logging
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup
 from telegram.ext import MessageHandler, Filters, Dispatcher, CallbackContext, CommandHandler, CallbackQueryHandler
 from .models import *
 
