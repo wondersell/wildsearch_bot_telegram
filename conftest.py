@@ -1,11 +1,11 @@
 import pytest
 import mongoengine as me
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from falcon import testing
 from botocore.stub import Stubber
 from telegram import Bot, Update
-from src import scrapinghub_helper, web
+from src import scrapinghub_helper
 from envparse import env
 
 
@@ -60,7 +60,9 @@ def telegram_update(telegram_json_message, telegram_json_command):
 
 @pytest.fixture
 def web_app():
-    return testing.TestClient(web.app)
+    with patch('src.bot.reset_webhook') as reset_webhook_patched:
+        from src import web
+        return testing.TestClient(web.app)
 
 
 @pytest.fixture(autouse=True)
@@ -74,3 +76,4 @@ def s3_stub():
 def mongo(request):
     me.connection.disconnect()
     db = me.connect('mongotest', host='mongomock://localhost')
+
