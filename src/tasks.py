@@ -7,7 +7,7 @@ from envparse import env
 from sentry_sdk.integrations.celery import CeleryIntegration
 from telegram import Bot
 
-from .scrapinghub_helper import WbCategoryComparator, category_export
+from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, category_export
 
 env.read_envfile()
 
@@ -61,10 +61,27 @@ def calculate_wb_category_diff():
 
 
 @celery.task()
+def calculate_category_stats(job_id, chat_id):
+    stats = WbCategoryStats().fill_from_api(job_id)
+
+    message = f'Количество товаров: `{stats.get_goods_count()}`\n' \
+              f'\n' \
+              f'Самый дорогой: `{"{:,}".format(stats.get_goods_price_max())}` руб.\n' \
+              f'Самый дешевый: `{"{:,}".format(stats.get_goods_price_min())}` руб.\n' \
+              f'Средняя цена: `{"{:,}".format(stats.get_goods_price_mean())}` руб.\n' \
+              f'\n' \
+              f'Объем продаж: `{"{:,}".format(stats.get_sales_sum())}` руб.\n' \
+              f'Средние продажи: `{"{:,}".format(stats.get_sales_mean())}` руб.\n' \
+              f'Медиана продаж: `{"{:,}".format(stats.get_sales_median())}` руб.\n'
+
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
+
+
+@celery.task()
 def schedule_category_export(category_url, chat_id):
     try:
         job_url = category_export(category_url, chat_id)
-        message = f"Вы запросили анализ каталога, он будет доступен по ссылке {job_url}"
+        message = f"Я поставил каталог в очередь на исследование. Скоро пришлю результаты."
     except Exception as e:
         message = f"Произошла ошибка при запросе каталога, попробуйте запросить его позже"
 

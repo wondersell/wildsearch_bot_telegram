@@ -1,27 +1,14 @@
 import logging
-import tempfile
-import boto3
 import os
-
-import pandas as pd
-import sentry_sdk
-from botocore.exceptions import ClientError
-from envparse import env
-from scrapinghub import ScrapinghubClient
+import tempfile
 from urllib.parse import urlunparse, urlencode, quote
 
-# загружаем конфиг
-env.read_envfile()
-
-# включаем логи
-logging.basicConfig(format='[%(asctime)s][%(levelname)s] %(message)s',
-                    level=logging.INFO)
+import boto3
+import pandas as pd
+from envparse import env
+from scrapinghub import ScrapinghubClient
 
 logger = logging.getLogger(__name__)
-
-# включаем Sentry
-if env('SENTRY_DSN', default=None) is not None:
-    sentry_sdk.init(env('SENTRY_DSN'))
 
 # инициализируем S3
 s3 = boto3.client('s3')
@@ -237,3 +224,67 @@ class WbCategoryComparator:
             raise Exception('type is not defined')
 
         return self.s3_files[_type]
+
+
+class WbCategoryStats:
+    def __init__(self):
+        self.data = []
+        self.df = pd.DataFrame()
+
+    def fill_from_api(self, job_id):
+        sh = init_scrapinghub()
+
+        for item in sh['client'].get_job(job_id).items.iter():
+            self.data.append(item)
+
+        self.prepare_dataframe()
+
+        return self
+
+    def load_from_list(self, category_data):
+        self.data = category_data
+
+        self.prepare_dataframe()
+
+        return self
+
+    def prepare_dataframe(self):
+        self.df = pd.DataFrame(self.data)
+
+        # если уж найдем пустые значения, то изгоним их каленым железом (вместе со всей строкой, да)
+        self.df.drop(self.df[self.df['wb_price'] == ''].index,inplace=True)  # это для случая загрузки из словаря
+        self.df.drop(self.df[self.df['wb_purchases_count'] == ''].index, inplace=True)  # это тоже для словаря
+        self.df.dropna(inplace=True)  # а это, если загрузили по API
+
+        self.df = self.df.astype({
+            'wb_category_position': int,
+            'wb_price': float,
+            'wb_purchases_count': int,
+            'wb_rating': float,
+            'wb_reviews_count': int
+        })
+
+        self.df['wb_turnover'] = self.df['wb_price'] * self.df['wb_purchases_count']
+
+        return self
+
+    def get_goods_count(self):
+        return len(self.df.index)
+
+    def get_goods_price_max(self):
+        return self.df['wb_price'].max()
+
+    def get_goods_price_min(self):
+        return self.df['wb_price'].min()
+
+    def get_goods_price_mean(self):
+        return round(self.df['wb_price'].mean(), 2)
+
+    def get_sales_sum(self):
+        return self.df["wb_turnover"].sum()
+
+    def get_sales_mean(self):
+        return round(self.df['wb_turnover'].mean(), 2)
+
+    def get_sales_median(self):
+        return round(self.df['wb_turnover'].median(), 2)

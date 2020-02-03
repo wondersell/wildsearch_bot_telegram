@@ -3,7 +3,6 @@ import logging
 
 import falcon
 from telegram import Bot, Update
-from envparse import env
 
 from . import tasks
 from .scrapinghub_helper import *
@@ -15,7 +14,19 @@ logger = logging.getLogger(__name__)
 class CallbackCategoryExportResource(object):
     def on_post(self, req, resp):
         if req.has_param('chat_id'):
-            bot.send_message(chat_id=req.get_param('chat_id'), text='Выгрузка данных по категории готова')
+            bot.send_message(
+                chat_id=req.get_param('chat_id'),
+                text='Выгрузка данных по категории готова. Приступаю к анализу.'
+            )
+
+            tasks.calculate_category_stats.apply_async(
+                (),
+                {
+                    'job_id': req.get_param('job_id'),
+                    'chat_id': req.get_param('chat_id')
+                },
+                countdown=30
+            )
 
             resp.status = falcon.HTTP_200
             resp.body = json.dumps({'status': 'ok'})

@@ -20,7 +20,7 @@ def test_command_rnd(mocked_reply_text, web_app, telegram_json_message):
     ['Как дела, потомки?', 'reply_text'],
     ['https://www.wildberries.ru/catalog/dom-i-dacha/tovary-dlya-remonta/instrumenty/magnitnye-instrumenty', 'celery_delay'],
 ])
-@patch('src.tasks.schedule_category_export.delay')
+@patch('src.tasks.schedule_category_export.apply_async')
 @patch('telegram.Message.reply_text')
 def test_command_catalog(mocked_reply_text, mocked_celery_delay, web_app, telegram_json_message, message, expected):
     telegram_json = telegram_json_message(message=message)
