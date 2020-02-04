@@ -64,7 +64,9 @@ def calculate_wb_category_diff():
 def calculate_category_stats(job_id, chat_id):
     stats = WbCategoryStats().fill_from_api(job_id)
 
-    message = f'Количество товаров: `{stats.get_goods_count()}`\n' \
+    message = f'[{stats.get_category_name()}]({stats.get_category_url()})\n' \
+              f'\n' \
+              f'Количество товаров: `{stats.get_goods_count()}`\n' \
               f'\n' \
               f'Самый дорогой: `{"{:,}".format(stats.get_goods_price_max())}` руб.\n' \
               f'Самый дешевый: `{"{:,}".format(stats.get_goods_price_min())}` руб.\n' \

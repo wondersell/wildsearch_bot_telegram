@@ -24,6 +24,12 @@ def sample_category_missing():
     return csv.DictReader(f)
 
 
+@pytest.fixture()
+def sample_category_with_names():
+    f = open('tests/mocks/sample_wb_category_with_names.csv')
+    return csv.DictReader(f)
+
+
 @patch('scrapinghub.client.jobs.Jobs.count')
 def test_scheduled_jobs_count(mocked_jobs_count):
     mocked_jobs_count.return_value = 5
@@ -125,3 +131,15 @@ def test_category_stats_basic_stats_missing(stats, sample_category_missing, meth
     stats.load_from_list(sample_category_missing)
 
     assert getattr(stats, method_name)() == expected_value
+
+
+def test_category_stats_get_category_name(stats, sample_category_with_names):
+    stats.load_from_list(sample_category_with_names)
+
+    assert stats.get_category_name() == 'Ювелирные иконы'
+
+
+def test_category_stats_get_category_url(stats, sample_category_with_names):
+    stats.load_from_list(sample_category_with_names)
+
+    assert stats.get_category_url() == 'https://www.wildberries.ru/catalog/yuvelirnye-ukrasheniya/ikony'

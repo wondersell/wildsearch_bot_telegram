@@ -268,6 +268,12 @@ class WbCategoryStats:
 
         return self
 
+    def get_category_name(self):
+        return self.df.loc[0, 'wb_category_name'] if 'wb_category_name' in self.df.columns else 'Неизвестная категория'
+
+    def get_category_url(self):
+        return self.df.loc[0, 'wb_category_url'] if 'wb_category_url' in self.df.columns else '–'
+
     def get_goods_count(self):
         return len(self.df.index)
 
