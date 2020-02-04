@@ -294,3 +294,10 @@ class WbCategoryStats:
 
     def get_sales_median(self):
         return round(self.df['wb_turnover'].median(), 2)
+
+    def get_category_excel(self):
+        temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix='wb_category_', mode='r+b', delete=True)
+
+        self.df.to_excel(temp_file.name, index=None, header=True)
+
+        return temp_file

@@ -78,6 +78,8 @@ def calculate_category_stats(job_id, chat_id):
 
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
 
+    bot.send_document(chat_id=chat_id, document=stats.get_category_excel(), filename=f'{stats.get_category_name()} на Wildberries.xlsx')
+
 
 @celery.task()
 def schedule_category_export(category_url, chat_id):

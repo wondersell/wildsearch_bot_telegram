@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 import csv
+import os
 
 from src.scrapinghub_helper import *
 from src.tasks import get_cat_update_users, schedule_category_export, calculate_category_stats
@@ -91,11 +92,13 @@ def test_schedule_category_export_with_exception(mocked_send_message, mocked_cat
     mocked_send_message.assert_called_with(chat_id='1423', text='Произошла ошибка при запросе каталога, попробуйте запросить его позже')
 
 
+@patch('telegram.Bot.send_document')
 @patch('telegram.Bot.send_message')
-def test_category_export_task_sends_message(mocked_send_message):
+def test_category_export_task_sends_message(mocked_send_message, mocked_send_document):
     calculate_category_stats('414324/1/356', '1423')
 
     mocked_send_message.assert_called()
+    mocked_send_document.assert_called()
 
 
 def test_category_stats_load_from_list(stats, sample_category_correct):
@@ -143,3 +146,11 @@ def test_category_stats_get_category_url(stats, sample_category_with_names):
     stats.load_from_list(sample_category_with_names)
 
     assert stats.get_category_url() == 'https://www.wildberries.ru/catalog/yuvelirnye-ukrasheniya/ikony'
+
+
+def test_category_stats_get_file(stats, sample_category_with_names):
+    stats.load_from_list(sample_category_with_names)
+
+    export_file = stats.get_category_excel()
+
+    assert os.path.isfile(export_file.name)
