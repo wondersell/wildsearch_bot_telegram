@@ -5,7 +5,7 @@ import csv
 import os
 
 from src.scrapinghub_helper import *
-from src.tasks import get_cat_update_users, schedule_category_export, calculate_category_stats
+from src.tasks import get_cat_update_users, schedule_wb_category_export, calculate_wb_category_stats
 
 
 @pytest.fixture()
@@ -45,7 +45,7 @@ def test_category_export_too_many_jobs_exception(mocked_jobs_count):
     mocked_jobs_count.return_value = 5
 
     with pytest.raises(Exception) as e_info:
-        category_export('https://www.wildberries.ru/category/dummy', 123)
+        wb_category_export('https://www.wildberries.ru/category/dummy', 123)
 
     assert str(e_info.value) == 'Spider wb has more than 1 queued jobs'
 
@@ -65,28 +65,28 @@ def test_category_export_correct(mocked_jobs_run, mocked_jobs_count):
     mocked_jobs_count.return_value = 0
     mocked_jobs_run.return_value.key = '1423'
 
-    result_url = category_export('https://www.wildberries.ru/category/dummy', 123)
+    result_url = wb_category_export('https://www.wildberries.ru/category/dummy', 123)
 
     assert result_url == 'https://app.scrapinghub.com/p/1423'
 
 
-@patch('src.tasks.category_export')
+@patch('src.tasks.wb_category_export')
 @patch('telegram.Bot.send_message')
 def test_schedule_category_export_correct(mocked_send_message, mocked_category_export):
     mocked_category_export.return_value='https://dummy.url/'
 
-    schedule_category_export('https://www.wildberries/category/url', '1423')
+    schedule_wb_category_export('https://www.wildberries/category/url', '1423')
 
     mocked_category_export.assert_called()
     mocked_send_message.assert_called_with(chat_id='1423', text='Я поставил каталог в очередь на исследование. Скоро пришлю результаты.')
 
 
-@patch('src.tasks.category_export')
+@patch('src.tasks.wb_category_export')
 @patch('telegram.Bot.send_message')
 def test_schedule_category_export_with_exception(mocked_send_message, mocked_category_export):
     mocked_category_export.side_effect = Exception('Spider wb has more than 1 queued jobs')
 
-    schedule_category_export('https://www.wildberries/category/url', '1423')
+    schedule_wb_category_export('https://www.wildberries/category/url', '1423')
 
     mocked_category_export.assert_called()
     mocked_send_message.assert_called_with(chat_id='1423', text='Произошла ошибка при запросе каталога, попробуйте запросить его позже')
@@ -95,7 +95,7 @@ def test_schedule_category_export_with_exception(mocked_send_message, mocked_cat
 @patch('telegram.Bot.send_document')
 @patch('telegram.Bot.send_message')
 def test_category_export_task_sends_message(mocked_send_message, mocked_send_document):
-    calculate_category_stats('414324/1/356', '1423')
+    calculate_wb_category_stats('414324/1/356', '1423')
 
     mocked_send_message.assert_called()
     mocked_send_document.assert_called()

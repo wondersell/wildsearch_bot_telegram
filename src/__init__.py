@@ -1,6 +1,8 @@
 import logging
 import sentry_sdk
 from sentry_sdk.integrations.falcon import FalconIntegration
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 from envparse import env
 
 # загружаем конфиг
@@ -14,4 +16,4 @@ logger = logging.getLogger(__name__)
 
 # включаем Sentry
 if env('SENTRY_DSN', default=None) is not None:
-    sentry_sdk.init(env('SENTRY_DSN'), integrations=[FalconIntegration()])
+    sentry_sdk.init(env('SENTRY_DSN'), integrations=[FalconIntegration(), CeleryIntegration(), RedisIntegration()])

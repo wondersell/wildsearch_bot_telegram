@@ -7,7 +7,7 @@ from envparse import env
 from sentry_sdk.integrations.celery import CeleryIntegration
 from telegram import Bot
 
-from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, category_export
+from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, wb_category_export
 
 env.read_envfile()
 
@@ -61,7 +61,7 @@ def calculate_wb_category_diff():
 
 
 @celery.task()
-def calculate_category_stats(job_id, chat_id):
+def calculate_wb_category_stats(job_id, chat_id):
     stats = WbCategoryStats().fill_from_api(job_id)
 
     message = f'[{stats.get_category_name()}]({stats.get_category_url()})\n' \
@@ -82,9 +82,9 @@ def calculate_category_stats(job_id, chat_id):
 
 
 @celery.task()
-def schedule_category_export(category_url, chat_id):
+def schedule_wb_category_export(category_url, chat_id):
     try:
-        job_url = category_export(category_url, chat_id)
+        job_url = wb_category_export(category_url, chat_id)
         message = f"Я поставил каталог в очередь на исследование. Скоро пришлю результаты."
     except Exception as e:
         message = f"Произошла ошибка при запросе каталога, попробуйте запросить его позже"

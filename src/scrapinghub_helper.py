@@ -27,7 +27,7 @@ def scheduled_jobs_count(sh, spider) -> int:
     return spider.jobs.count(state='pending') + spider.jobs.count(state='running')
 
 
-def category_export(url, chat_id) -> str:
+def wb_category_export(url, chat_id) -> str:
     """
     Schedule WB category export on Scrapinghub
     """
@@ -39,7 +39,7 @@ def category_export(url, chat_id) -> str:
 
     job = sh['project'].jobs.run('wb', job_args={
         'category_url': url,
-        'callback_url': env('WILDSEARCH_JOB_FINISHED_CALLBACK') + '/category_export',
+        'callback_url': env('WILDSEARCH_JOB_FINISHED_CALLBACK') + '/wb_category_export',
         'callback_params': f"chat_id={chat_id}"
     })
 

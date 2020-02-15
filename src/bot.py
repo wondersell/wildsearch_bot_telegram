@@ -19,8 +19,8 @@ def start(update: Update, context: CallbackContext):
     update.message.reply_text(f'Привет, {user.user_name}! Вот возможные команды:\n\n1. 🗄Обновления категорий WB,\n2. 📊Анализ выбранной категории,\n3. ⭐️Следить за категорией,\n4. 🛍Следить за товаром\n5. 💁‍♀️Инфо')
 
 
-def catalog(update: Update, context: CallbackContext):
-    tasks.schedule_category_export.delay(update.message.text, update.message.chat_id)
+def wb_catalog(update: Update, context: CallbackContext):
+    tasks.schedule_wb_category_export.delay(update.message.text, update.message.chat_id)
 
 
 def rnd(update: Update, context: CallbackContext):
@@ -49,7 +49,7 @@ def start_bot(bot):
     dp = Dispatcher(bot, None, workers=0, use_context=True)
 
     dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(MessageHandler(Filters.text & Filters.regex('www\.wildberries\.ru/catalog/'), catalog))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex('www\.wildberries\.ru/catalog/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text, rnd))
 
     return dp
