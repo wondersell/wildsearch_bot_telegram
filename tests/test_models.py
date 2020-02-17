@@ -11,13 +11,6 @@ def test_user_get_by_chat_id():
     assert u_created == u_fetched
 
 
-def test_user_get_by_chat_id_existing(bot_user):
-    bot_user.save()
-    u_fetched = user_get_by(chat_id='383716')  # magic number from tests/mocks/tg_request_command.json
-
-    assert u_fetched == bot_user
-
-
 @freeze_time("2030-01-15")
 def test_user_created_updated_at():
     u = User(chat_id='12345').save()
