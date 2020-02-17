@@ -11,6 +11,13 @@ def test_user_get_by_chat_id():
     assert u_created == u_fetched
 
 
+def test_user_get_by_chat_id_existing(bot_user):
+    bot_user.save()
+    u_fetched = user_get_by(chat_id='383716')  # magic number from tests/mocks/tg_request_command.json
+
+    assert u_fetched == bot_user
+
+
 @freeze_time("2030-01-15")
 def test_user_created_updated_at():
     u = User(chat_id='12345').save()
@@ -29,13 +36,24 @@ def test_user_updated_at_changing():
         u.full_name = 'Oh my dummy'
         u.save()
         assert u.updated_at == datetime(2030, 6, 15)
+        assert u.created_at == datetime(2030, 1, 15)
 
 
 @freeze_time("2030-01-15")
-def test_log_command_item_created_updated_at():
+def test_log_command_item_created_at():
     lci = LogCommandItem(command='/start').save()
 
     assert lci.created_at == datetime(2030, 1, 15)
+
+
+@freeze_time("2030-01-15")
+def test_log_command_item_created_at_existing():
+    lci = LogCommandItem(command='/start').save()
+
+    with freeze_time("2030-06-15"):
+        lci.message = 'Oh my dummy'
+        lci.save()
+        assert lci.created_at == datetime(2030, 1, 15)
 
 
 def test_telegram_update_fixture_message(telegram_update):
