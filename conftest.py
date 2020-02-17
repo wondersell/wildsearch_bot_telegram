@@ -7,6 +7,7 @@ from botocore.stub import Stubber
 from telegram import Bot, Update
 from src import scrapinghub_helper
 from envparse import env
+from src.models import *
 
 
 @pytest.fixture
@@ -59,6 +60,15 @@ def telegram_update(telegram_json_message, telegram_json_command):
 
 
 @pytest.fixture
+def create_telegram_command_logs(bot_user):
+    def _create_telegram_catalog_logs(logs_count=1, command='/start', message='message'):
+        for _ in range(logs_count):
+            log_command(bot_user, command, message)
+
+    return _create_telegram_catalog_logs
+
+
+@pytest.fixture
 def web_app():
     with patch('src.bot.reset_webhook') as reset_webhook_patched:
         from src import web
@@ -77,3 +87,11 @@ def mongo(request):
     me.connection.disconnect()
     db = me.connect('mongotest', host='mongomock://localhost')
 
+
+@pytest.fixture()
+def bot_user():
+    return User(
+        chat_id=383716,
+        user_name='wildsearch_test_user',
+        full_name='Wonder Sell'
+    )

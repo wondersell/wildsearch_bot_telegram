@@ -13,17 +13,26 @@ logger = logging.getLogger(__name__)
 
 def start(update: Update, context: CallbackContext):
     logger.info('Start command received')
-
     user = user_get_by_update(update)
+    log_command(user, 'start', update.message.text)
 
     update.message.reply_text(f'Привет, {user.user_name}! Вот возможные команды:\n\n1. 🗄Обновления категорий WB,\n2. 📊Анализ выбранной категории,\n3. ⭐️Следить за категорией,\n4. 🛍Следить за товаром\n5. 💁‍♀️Инфо')
 
 
 def wb_catalog(update: Update, context: CallbackContext):
-    tasks.schedule_wb_category_export.delay(update.message.text, update.message.chat_id)
+    user = user_get_by_update(update)
+    log_command(user, 'wb_catalog', update.message.text)
+
+    if user.can_send_more_catalog_requests():
+        tasks.schedule_wb_category_export.delay(update.message.text, update.message.chat_id)
+    else:
+        update.message.reply_text(f'Сорян, у тебя закончился лимит выгрузок на сегодня')
 
 
 def rnd(update: Update, context: CallbackContext):
+    user = user_get_by_update(update)
+    log_command(user, 'rnd', update.message.text)
+
     """Send random message."""
     messages = [
         'Понятия не имею о чем ты',
@@ -53,4 +62,3 @@ def start_bot(bot):
     dp.add_handler(MessageHandler(Filters.text, rnd))
 
     return dp
-

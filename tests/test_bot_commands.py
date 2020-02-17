@@ -34,6 +34,27 @@ def test_command_catalog(mocked_reply_text, mocked_celery_delay, web_app, telegr
         mocked_celery_delay.assert_called()
 
 
+@patch('src.tasks.schedule_wb_category_export.apply_async')
+@patch('telegram.Message.reply_text')
+def test_command_catalog_normal(mocked_reply_text, mocked_celery_delay, web_app, telegram_json_message):
+    telegram_json = telegram_json_message(message='https://www.wildberries.ru/catalog/dom-i-dacha/tovary-dlya-remonta/instrumenty/magnitnye-instrumenty')
+
+    web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
+
+    mocked_celery_delay.assert_called()
+
+
+@patch('src.tasks.schedule_wb_category_export.apply_async')
+@patch('telegram.Message.reply_text')
+def test_command_catalog_throttled(mocked_reply_text, mocked_celery_delay, web_app, telegram_json_message, create_telegram_command_logs):
+    create_telegram_command_logs(5, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/kantstovary/tochilki')
+    telegram_json = telegram_json_message(message='https://www.wildberries.ru/catalog/dom-i-dacha/tovary-dlya-remonta/instrumenty/magnitnye-instrumenty')
+
+    web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
+
+    assert 'Сорян' in mocked_reply_text.call_args.args[0]
+
+
 @patch('telegram.Message.reply_text')
 def test_command_start(mocked_reply_text, web_app, telegram_json_command):
     telegram_json = telegram_json_command(command='/start')
@@ -41,6 +62,7 @@ def test_command_start(mocked_reply_text, web_app, telegram_json_command):
     web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
 
     mocked_reply_text.assert_called()
+    assert 'Привет' in mocked_reply_text.call_args.args[0]
 
 
 def test_create_update_from_json_mock(telegram_json_command):
