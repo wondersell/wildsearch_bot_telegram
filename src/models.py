@@ -14,8 +14,6 @@ def user_get_by(*args, **kwargs):
 
 
 def user_get_by_update(update: Update):
-    print(update.__dict__.keys())
-
     if update.message:
         message = update.message
     else:

@@ -78,7 +78,7 @@ def test_schedule_category_export_correct(mocked_send_message, mocked_category_e
     schedule_wb_category_export('https://www.wildberries/category/url', '1423')
 
     mocked_category_export.assert_called()
-    mocked_send_message.assert_called_with(chat_id='1423', text='Я поставил каталог в очередь на исследование. Скоро пришлю результаты.')
+    assert 'Мы обрабатываем ваш запрос' in mocked_send_message.call_args.kwargs['text']
 
 
 @patch('src.tasks.wb_category_export')
@@ -89,7 +89,7 @@ def test_schedule_category_export_with_exception(mocked_send_message, mocked_cat
     schedule_wb_category_export('https://www.wildberries/category/url', '1423')
 
     mocked_category_export.assert_called()
-    mocked_send_message.assert_called_with(chat_id='1423', text='Произошла ошибка при запросе каталога, попробуйте запросить его позже')
+    assert 'Произошла ошибка' in mocked_send_message.call_args.kwargs['text']
 
 
 @patch('telegram.Bot.send_document')

@@ -73,7 +73,7 @@ def test_user_get_by_update_empty(telegram_update):
 
 
 def test_user_get_by_update_without_surname(telegram_update_without_surname):
-    update = telegram_update_without_surname(message='Um, hi!')
+    update = telegram_update_without_surname()
 
     user = user_get_by_update(update)
 
