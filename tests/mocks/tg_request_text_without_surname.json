@@ -1,0 +1,21 @@
+{
+    "update_id": 736079467,
+    "message": {
+        "message_id": 288,
+        "from": {
+            "id": 246225,
+            "is_bot": false,
+            "first_name": "Vadim",
+            "username": "username",
+            "language_code": "ru"
+        },
+        "chat": {
+            "id": 246225,
+            "first_name": "Vadim",
+            "username": "username",
+            "type": "private"
+        },
+        "date": 1582031515,
+        "text": "Три"
+    }
+}

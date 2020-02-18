@@ -72,6 +72,17 @@ def test_user_get_by_update_empty(telegram_update):
     assert user.full_name == 'Артём Киселёв'
 
 
+def test_user_get_by_update_without_surname(telegram_update_without_surname):
+    update = telegram_update_without_surname(message='Um, hi!')
+
+    user = user_get_by_update(update)
+
+    assert isinstance(user, User)
+    assert user.chat_id == 246225
+    assert user.user_name == 'username'
+    assert user.full_name == 'Vadim'
+
+
 def test_user_log_command(bot_user):
     log_command(bot_user, '/start', 'Hi')
     log_command(bot_user, '/stop', 'Bye')

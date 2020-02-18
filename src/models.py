@@ -1,10 +1,8 @@
 from datetime import datetime
-from telegram import Update
-from mongoengine import connect
-from mongoengine import Document
-from mongoengine import BooleanField, IntField, StringField, DateTimeField, ReferenceField
-from envparse import env
 
+from envparse import env
+from mongoengine import BooleanField, DateTimeField, Document, IntField, ReferenceField, StringField, connect
+from telegram import Update
 
 env.read_envfile()
 
@@ -16,15 +14,26 @@ def user_get_by(*args, **kwargs):
 
 
 def user_get_by_update(update: Update):
-    matched = User.objects(chat_id=update.message.chat_id)
+    if 'message' in update.__dict__.keys():
+        message = update.message
+    else:
+        message = update.callback_query.message
+
+    matched = User.objects(chat_id=message.chat.id)
 
     if matched.count():
         return matched.first()
 
+    full_name = ''
+    if message.from_user.first_name:
+        full_name += message.from_user.first_name
+    if message.from_user.last_name:
+        full_name += ' ' + message.from_user.last_name
+
     return User(
-        chat_id=update.message.chat_id,
-        user_name=update.message.from_user.username,
-        full_name=update.message.from_user.first_name + ' ' + update.message.from_user.last_name
+        chat_id=message.chat_id,
+        user_name=message.from_user.username,
+        full_name=full_name,
     ).save()
 
 
@@ -32,7 +41,7 @@ def log_command(user, command: str, message: str):
     return LogCommandItem(
         user=user,
         command=command,
-        message=message
+        message=message,
     ).save()
 
 
