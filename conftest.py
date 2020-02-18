@@ -25,6 +25,20 @@ def telegram_json_message():
 
 
 @pytest.fixture
+def telegram_json_message_without_surname():
+    def _telegram_json_message(message=None):
+        with open('tests/mocks/tg_request_text_without_surname.json') as f:
+            json_body = f.read()
+            json_data = json.loads(json_body)
+
+            if message is not None:
+                json_data['message']['text'] = message
+
+            return json.dumps(json_data)
+    return _telegram_json_message
+
+
+@pytest.fixture
 def telegram_json_command():
     def _telegram_json_command(command=None):
         with open('tests/mocks/tg_request_command.json') as f:
@@ -50,6 +64,19 @@ def telegram_update(telegram_json_message, telegram_json_command):
 
         if message is not None:
             telegram_json = telegram_json_message(message)
+
+        bot = Bot(env('TELEGRAM_API_TOKEN'))
+        update = Update.de_json(json.loads(telegram_json), bot)
+
+        return update
+
+    return _telegram_update
+
+
+@pytest.fixture
+def telegram_update_without_surname(telegram_json_message_without_surname):
+    def _telegram_update():
+        telegram_json = telegram_json_message_without_surname()
 
         bot = Bot(env('TELEGRAM_API_TOKEN'))
         update = Update.de_json(json.loads(telegram_json), bot)

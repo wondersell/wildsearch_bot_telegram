@@ -4,7 +4,6 @@ import logging
 import boto3
 from celery import Celery
 from envparse import env
-from sentry_sdk.integrations.celery import CeleryIntegration
 from telegram import Bot
 
 from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, wb_category_export
@@ -78,15 +77,19 @@ def calculate_wb_category_stats(job_id, chat_id):
 
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
 
-    bot.send_document(chat_id=chat_id, document=stats.get_category_excel(), filename=f'{stats.get_category_name()} на Wildberries.xlsx')
+    bot.send_document(
+        chat_id=chat_id,
+        document=stats.get_category_excel(),
+        filename=f'{stats.get_category_name()} на Wildberries.xlsx',
+    )
 
 
 @celery.task()
 def schedule_wb_category_export(category_url, chat_id):
     try:
-        job_url = wb_category_export(category_url, chat_id)
+        wb_category_export(category_url, chat_id)
         message = f"Я поставил каталог в очередь на исследование. Скоро пришлю результаты."
-    except Exception as e:
+    except Exception:
         message = f"Произошла ошибка при запросе каталога, попробуйте запросить его позже"
 
         pass

@@ -1,7 +1,7 @@
 import logging
 import os
 import tempfile
-from urllib.parse import urlunparse, urlencode, quote
+from urllib.parse import quote, urlencode, urlunparse
 
 import boto3
 import pandas as pd
@@ -40,7 +40,7 @@ def wb_category_export(url, chat_id) -> str:
     job = sh['project'].jobs.run('wb', job_args={
         'category_url': url,
         'callback_url': env('WILDSEARCH_JOB_FINISHED_CALLBACK') + '/wb_category_export',
-        'callback_params': f"chat_id={chat_id}"
+        'callback_params': f"chat_id={chat_id}",
     })
 
     logger.info(f"Export for category {url} will have job key {job.key}")
@@ -66,7 +66,7 @@ class WbCategoryComparator:
             'catalog/0/search.aspx',
             '',
             urlencode({'search': category_name}, quote_via=quote),
-            ''
+            '',
         ))
 
     def generate_category_type(self, category_url):
@@ -103,7 +103,7 @@ class WbCategoryComparator:
             for item in sh['client'].get_job(job['key']).items.iter():
                 job_results[counter].append({
                     'wb_category_name': item['wb_category_name'],
-                    'wb_category_url': item['wb_category_url']
+                    'wb_category_url': item['wb_category_url'],
                 })
 
             counter += 1
@@ -120,13 +120,13 @@ class WbCategoryComparator:
     def add_category_search_url(self):
         for _type in self._types:
             self.diff[_type]['wb_category_search_url'] = self.diff[_type]['wb_category_name'].apply(
-                lambda x: self.generate_search_url(x)
+                lambda x: self.generate_search_url(x),
             )
 
     def add_category_type(self):
         for _type in self._types:
             self.diff[_type]['wb_category_type'] = self.diff[_type]['wb_category_url'].apply(
-                lambda x: self.generate_category_type(x)
+                lambda x: self.generate_category_type(x),
             )
 
     def sort_by(self, _field):
@@ -252,7 +252,7 @@ class WbCategoryStats:
         self.df = pd.DataFrame(self.data)
 
         # если уж найдем пустые значения, то изгоним их каленым железом (вместе со всей строкой, да)
-        self.df.drop(self.df[self.df['wb_price'] == ''].index,inplace=True)  # это для случая загрузки из словаря
+        self.df.drop(self.df[self.df['wb_price'] == ''].index, inplace=True)  # это для случая загрузки из словаря
         self.df.drop(self.df[self.df['wb_purchases_count'] == ''].index, inplace=True)  # это тоже для словаря
         self.df.dropna(inplace=True)  # а это, если загрузили по API
 
@@ -261,7 +261,7 @@ class WbCategoryStats:
             'wb_price': float,
             'wb_purchases_count': int,
             'wb_rating': float,
-            'wb_reviews_count': int
+            'wb_reviews_count': int,
         })
 
         self.df['wb_turnover'] = self.df['wb_price'] * self.df['wb_purchases_count']

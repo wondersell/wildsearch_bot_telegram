@@ -2,10 +2,10 @@ import json
 import logging
 
 import falcon
+from envparse import env
 from telegram import Bot, Update
 
 from . import tasks
-from .scrapinghub_helper import *
 from .bot import reset_webhook, start_bot
 
 logger = logging.getLogger(__name__)
@@ -16,16 +16,16 @@ class CallbackWbCategoryExportResource(object):
         if req.has_param('chat_id'):
             bot.send_message(
                 chat_id=req.get_param('chat_id'),
-                text='Выгрузка данных по категории готова. Приступаю к анализу.'
+                text='Выгрузка данных по категории готова. Приступаю к анализу.',
             )
 
             tasks.calculate_wb_category_stats.apply_async(
                 (),
                 {
                     'job_id': req.get_param('job_id'),
-                    'chat_id': req.get_param('chat_id')
+                    'chat_id': req.get_param('chat_id'),
                 },
-                countdown=30
+                countdown=30,
             )
 
             resp.status = falcon.HTTP_200

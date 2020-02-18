@@ -1,9 +1,10 @@
 import logging
+
 import sentry_sdk
-from sentry_sdk.integrations.falcon import FalconIntegration
-from sentry_sdk.integrations.celery import CeleryIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
 from envparse import env
+from sentry_sdk.integrations.celery import CeleryIntegration
+from sentry_sdk.integrations.falcon import FalconIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
 
 # загружаем конфиг
 env.read_envfile()

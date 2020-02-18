@@ -1,11 +1,11 @@
-import random
 import logging
+import random
 
 from telegram import Update
-from telegram.ext import MessageHandler, Filters, Dispatcher, CallbackContext, CommandHandler
-from .models import *
+from telegram.ext import CallbackContext, CommandHandler, Dispatcher, Filters, MessageHandler
 
 from . import tasks
+from .models import log_command, user_get_by_update
 
 # включаем логи
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ def rnd(update: Update, context: CallbackContext):
         'Сказал кожаный мешок',
         'Дело терминатора правое, победа будет за нами!',
         'Плоть слаба, железо – вечно',
-        'Мой мозг прошил быстрый нейтрон'
+        'Мой мозг прошил быстрый нейтрон',
     ]
 
     update.message.reply_text(random.choice(messages))
@@ -51,14 +51,14 @@ def rnd(update: Update, context: CallbackContext):
 
 def reset_webhook(bot, url, token):
     bot.delete_webhook()
-    bot.set_webhook(url=url+token)
+    bot.set_webhook(url=url + token)
 
 
 def start_bot(bot):
     dp = Dispatcher(bot, None, workers=0, use_context=True)
 
     dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(MessageHandler(Filters.text & Filters.regex('www\.wildberries\.ru/catalog/'), wb_catalog))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex('www.wildberries.ru/catalog/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text, rnd))
 
     return dp
