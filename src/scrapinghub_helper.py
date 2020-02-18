@@ -1,27 +1,14 @@
 import logging
-import tempfile
-import boto3
 import os
+import tempfile
+from urllib.parse import quote, urlencode, urlunparse
 
+import boto3
 import pandas as pd
-import sentry_sdk
-from botocore.exceptions import ClientError
 from envparse import env
 from scrapinghub import ScrapinghubClient
-from urllib.parse import urlunparse, urlencode, quote
-
-# загружаем конфиг
-env.read_envfile()
-
-# включаем логи
-logging.basicConfig(format='[%(asctime)s][%(levelname)s] %(message)s',
-                    level=logging.INFO)
 
 logger = logging.getLogger(__name__)
-
-# включаем Sentry
-if env('SENTRY_DSN', default=None) is not None:
-    sentry_sdk.init(env('SENTRY_DSN'))
 
 # инициализируем S3
 s3 = boto3.client('s3')
@@ -40,7 +27,7 @@ def scheduled_jobs_count(sh, spider) -> int:
     return spider.jobs.count(state='pending') + spider.jobs.count(state='running')
 
 
-def category_export(url, chat_id) -> str:
+def wb_category_export(url, chat_id) -> str:
     """
     Schedule WB category export on Scrapinghub
     """
@@ -52,8 +39,8 @@ def category_export(url, chat_id) -> str:
 
     job = sh['project'].jobs.run('wb', job_args={
         'category_url': url,
-        'callback_url': env('WILDSEARCH_JOB_FINISHED_CALLBACK') + '/category_export',
-        'callback_params': f"chat_id={chat_id}"
+        'callback_url': env('WILDSEARCH_JOB_FINISHED_CALLBACK') + '/wb_category_export',
+        'callback_params': f"chat_id={chat_id}",
     })
 
     logger.info(f"Export for category {url} will have job key {job.key}")
@@ -79,7 +66,7 @@ class WbCategoryComparator:
             'catalog/0/search.aspx',
             '',
             urlencode({'search': category_name}, quote_via=quote),
-            ''
+            '',
         ))
 
     def generate_category_type(self, category_url):
@@ -116,7 +103,7 @@ class WbCategoryComparator:
             for item in sh['client'].get_job(job['key']).items.iter():
                 job_results[counter].append({
                     'wb_category_name': item['wb_category_name'],
-                    'wb_category_url': item['wb_category_url']
+                    'wb_category_url': item['wb_category_url'],
                 })
 
             counter += 1
@@ -133,13 +120,13 @@ class WbCategoryComparator:
     def add_category_search_url(self):
         for _type in self._types:
             self.diff[_type]['wb_category_search_url'] = self.diff[_type]['wb_category_name'].apply(
-                lambda x: self.generate_search_url(x)
+                lambda x: self.generate_search_url(x),
             )
 
     def add_category_type(self):
         for _type in self._types:
             self.diff[_type]['wb_category_type'] = self.diff[_type]['wb_category_url'].apply(
-                lambda x: self.generate_category_type(x)
+                lambda x: self.generate_category_type(x),
             )
 
     def sort_by(self, _field):
@@ -237,3 +224,80 @@ class WbCategoryComparator:
             raise Exception('type is not defined')
 
         return self.s3_files[_type]
+
+
+class WbCategoryStats:
+    def __init__(self):
+        self.data = []
+        self.df = pd.DataFrame()
+
+    def fill_from_api(self, job_id):
+        sh = init_scrapinghub()
+
+        for item in sh['client'].get_job(job_id).items.iter():
+            self.data.append(item)
+
+        self.prepare_dataframe()
+
+        return self
+
+    def load_from_list(self, category_data):
+        self.data = category_data
+
+        self.prepare_dataframe()
+
+        return self
+
+    def prepare_dataframe(self):
+        self.df = pd.DataFrame(self.data)
+
+        # если уж найдем пустые значения, то изгоним их каленым железом (вместе со всей строкой, да)
+        self.df.drop(self.df[self.df['wb_price'] == ''].index, inplace=True)  # это для случая загрузки из словаря
+        self.df.drop(self.df[self.df['wb_purchases_count'] == ''].index, inplace=True)  # это тоже для словаря
+        self.df.dropna(inplace=True)  # а это, если загрузили по API
+
+        self.df = self.df.astype({
+            'wb_category_position': int,
+            'wb_price': float,
+            'wb_purchases_count': int,
+            'wb_rating': float,
+            'wb_reviews_count': int,
+        })
+
+        self.df['wb_turnover'] = self.df['wb_price'] * self.df['wb_purchases_count']
+
+        return self
+
+    def get_category_name(self):
+        return self.df.loc[0, 'wb_category_name'] if 'wb_category_name' in self.df.columns else 'Неизвестная категория'
+
+    def get_category_url(self):
+        return self.df.loc[0, 'wb_category_url'] if 'wb_category_url' in self.df.columns else '–'
+
+    def get_goods_count(self):
+        return len(self.df.index)
+
+    def get_goods_price_max(self):
+        return self.df['wb_price'].max()
+
+    def get_goods_price_min(self):
+        return self.df['wb_price'].min()
+
+    def get_goods_price_mean(self):
+        return round(self.df['wb_price'].mean(), 2)
+
+    def get_sales_sum(self):
+        return self.df["wb_turnover"].sum()
+
+    def get_sales_mean(self):
+        return round(self.df['wb_turnover'].mean(), 2)
+
+    def get_sales_median(self):
+        return round(self.df['wb_turnover'].median(), 2)
+
+    def get_category_excel(self):
+        temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix='wb_category_', mode='r+b', delete=True)
+
+        self.df.to_excel(temp_file.name, index=None, header=True)
+
+        return temp_file

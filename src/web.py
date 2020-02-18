@@ -2,20 +2,31 @@ import json
 import logging
 
 import falcon
-from telegram import Bot, Update
 from envparse import env
+from telegram import Bot, Update
 
 from . import tasks
-from .scrapinghub_helper import *
 from .bot import reset_webhook, start_bot
 
 logger = logging.getLogger(__name__)
 
 
-class CallbackCategoryExportResource(object):
+class CallbackWbCategoryExportResource(object):
     def on_post(self, req, resp):
         if req.has_param('chat_id'):
-            bot.send_message(chat_id=req.get_param('chat_id'), text='Выгрузка данных по категории готова')
+            bot.send_message(
+                chat_id=req.get_param('chat_id'),
+                text='Выгрузка данных по категории готова. Приступаю к анализу.',
+            )
+
+            tasks.calculate_wb_category_stats.apply_async(
+                (),
+                {
+                    'job_id': req.get_param('job_id'),
+                    'chat_id': req.get_param('chat_id'),
+                },
+                countdown=30,
+            )
 
             resp.status = falcon.HTTP_200
             resp.body = json.dumps({'status': 'ok'})
@@ -53,7 +64,7 @@ bot_dispatcher = start_bot(bot)
 app = falcon.API()
 app.req_options.auto_parse_form_urlencoded = True
 
-app.add_route('/callback/category_export', CallbackCategoryExportResource())
+app.add_route('/callback/wb_category_export', CallbackWbCategoryExportResource())
 app.add_route('/callback/category_list', CallbackCategoryListResource())
 app.add_route('/' + env('TELEGRAM_API_TOKEN'), CallbackTelegramWebhook())
 app.add_route('/', CallbackIndex())

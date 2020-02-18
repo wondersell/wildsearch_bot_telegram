@@ -23,15 +23,17 @@ def bot():
 
 
 def test_category_export_finished_hook_missing_chat_id(web_app, bot):
-    got = web_app.simulate_post('/callback/category_export')
+    got = web_app.simulate_post('/callback/wb_category_export')
     assert got.status_code == 500
     assert 'wrong_chat_id' in got.text
 
 
+@patch('src.tasks.calculate_wb_category_stats.apply_async')
 @patch('telegram.Bot.send_message')
-def test_category_export_finished_hook_correct(mocked_send_message, web_app):
-    got = web_app.simulate_post('/callback/category_export', params={'chat_id': 100500})
+def test_category_export_finished_hook_correct(mocked_send_message, mocked_calculate_category_stats, web_app):
+    got = web_app.simulate_post('/callback/wb_category_export', params={'chat_id': 100500})
 
+    mocked_calculate_category_stats.assert_called_once()
     mocked_send_message.assert_called_once()
     assert got.status_code == 200
     assert 'ok' in got.text

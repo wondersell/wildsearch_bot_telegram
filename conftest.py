@@ -1,18 +1,33 @@
 import pytest
 import mongoengine as me
 import json
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 from falcon import testing
 from botocore.stub import Stubber
 from telegram import Bot, Update
-from src import scrapinghub_helper, web
+from src import scrapinghub_helper
 from envparse import env
+from src.models import *
 
 
 @pytest.fixture
 def telegram_json_message():
     def _telegram_json_message(message=None):
         with open('tests/mocks/tg_request_text.json') as f:
+            json_body = f.read()
+            json_data = json.loads(json_body)
+
+            if message is not None:
+                json_data['message']['text'] = message
+
+            return json.dumps(json_data)
+    return _telegram_json_message
+
+
+@pytest.fixture
+def telegram_json_message_without_surname():
+    def _telegram_json_message(message=None):
+        with open('tests/mocks/tg_request_text_without_surname.json') as f:
             json_body = f.read()
             json_data = json.loads(json_body)
 
@@ -77,8 +92,32 @@ def telegram_update(telegram_json_message, telegram_json_command, telegram_json_
 
 
 @pytest.fixture
+def telegram_update_without_surname(telegram_json_message_without_surname):
+    def _telegram_update():
+        telegram_json = telegram_json_message_without_surname()
+
+        bot = Bot(env('TELEGRAM_API_TOKEN'))
+        update = Update.de_json(json.loads(telegram_json), bot)
+
+        return update
+
+    return _telegram_update
+
+
+@pytest.fixture
+def create_telegram_command_logs(bot_user):
+    def _create_telegram_catalog_logs(logs_count=1, command='/start', message='message'):
+        for _ in range(logs_count):
+            log_command(bot_user, command, message)
+
+    return _create_telegram_catalog_logs
+
+
+@pytest.fixture
 def web_app():
-    return testing.TestClient(web.app)
+    with patch('src.bot.reset_webhook') as reset_webhook_patched:
+        from src import web
+        return testing.TestClient(web.app)
 
 
 @pytest.fixture(autouse=True)
@@ -92,3 +131,12 @@ def s3_stub():
 def mongo(request):
     me.connection.disconnect()
     db = me.connect('mongotest', host='mongomock://localhost')
+
+
+@pytest.fixture()
+def bot_user():
+    return User(
+        chat_id=383716,
+        user_name='wildsearch_test_user',
+        full_name='Wonder Sell'
+    )
