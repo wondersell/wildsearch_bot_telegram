@@ -14,7 +14,9 @@ def user_get_by(*args, **kwargs):
 
 
 def user_get_by_update(update: Update):
-    if 'message' in update.__dict__.keys():
+    print(update.__dict__.keys())
+
+    if update.message:
         message = update.message
     else:
         message = update.callback_query.message
@@ -37,7 +39,7 @@ def user_get_by_update(update: Update):
     ).save()
 
 
-def log_command(user, command: str, message: str):
+def log_command(user, command: str, message: str = ''):
     return LogCommandItem(
         user=user,
         command=command,
