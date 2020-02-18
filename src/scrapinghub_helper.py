@@ -254,7 +254,18 @@ class WbCategoryStats:
         # если уж найдем пустые значения, то изгоним их каленым железом (вместе со всей строкой, да)
         self.df.drop(self.df[self.df['wb_price'] == ''].index, inplace=True)  # это для случая загрузки из словаря
         self.df.drop(self.df[self.df['wb_purchases_count'] == ''].index, inplace=True)  # это тоже для словаря
-        self.df.dropna(inplace=True)  # а это, если загрузили по API
+
+        # а это, если загрузили по API
+        self.df.dropna(
+            subset=[
+                'wb_category_position',
+                'wb_price',
+                'wb_purchases_count',
+                'wb_rating',
+                'wb_reviews_count',
+            ],
+            inplace=True,
+        )
 
         self.df = self.df.astype({
             'wb_category_position': int,
