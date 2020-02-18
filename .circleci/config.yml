@@ -70,5 +70,6 @@ workflows:
       - unittest:
           requires:
             - build
-
-      - deploy
+      - deploy:
+          requires:
+            - unittest
