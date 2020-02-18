@@ -71,11 +71,11 @@ def calculate_wb_category_stats(job_id, chat_id):
               f'Самый дешевый: `{"{:,}".format(stats.get_goods_price_min())}` руб.\n' \
               f'Средняя цена: `{"{:,}".format(stats.get_goods_price_mean())}` руб.\n' \
               f'\n' \
-              f'Объем продаж: `{"{:,}".format(stats.get_sales_sum())}` руб.\n' \
-              f'Средние продажи: `{"{:,}".format(stats.get_sales_mean())}` руб.\n' \
-              f'Медиана продаж: `{"{:,}".format(stats.get_sales_median())}` руб.\n'
+              f'Объем продаж: `{"{:,}".format(stats.get_sales_sum())}` руб. (`{"{:,}".format(stats.get_sales_count())}` шт.)\n' \
+              f'Средние продажи: `{"{:,}".format(stats.get_sales_mean())}` руб. (`{"{:,}".format(stats.get_sales_mean_count())}` шт.)\n' \
+              f'Медиана продаж: `{"{:,}".format(stats.get_sales_median())}` руб. (`{"{:,}".format(stats.get_sales_median_count())}` шт.)\n'
 
-    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown')
+    bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
 
     bot.send_document(
         chat_id=chat_id,

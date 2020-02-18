@@ -306,6 +306,15 @@ class WbCategoryStats:
     def get_sales_median(self):
         return round(self.df['wb_turnover'].median(), 2)
 
+    def get_sales_count(self):
+        return self.df["wb_purchases_count"].sum()
+
+    def get_sales_mean_count(self):
+        return round(self.df['wb_purchases_count'].mean(), 2)
+
+    def get_sales_median_count(self):
+        return round(self.df['wb_purchases_count'].median(), 2)
+
     def get_category_excel(self):
         temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix='wb_category_', mode='r+b', delete=True)
 

@@ -129,6 +129,9 @@ def test_category_stats_basic_stats_correct(stats, sample_category_correct, meth
     ['get_sales_mean', 4.67],
     ['get_sales_median', 4],
     ['get_sales_sum', 14],
+    ['get_sales_mean_count', 2],
+    ['get_sales_median_count', 2],
+    ['get_sales_count', 6],
 ])
 def test_category_stats_basic_stats_missing(stats, sample_category_missing, method_name, expected_value):
     stats.load_from_list(sample_category_missing)
