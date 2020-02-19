@@ -5,8 +5,8 @@ import boto3
 from celery import Celery
 from envparse import env
 from telegram import Bot
-from .models import get_subscribed_to_wb_categories_updates
 
+from .models import get_subscribed_to_wb_categories_updates
 from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, wb_category_export
 
 env.read_envfile()
