@@ -8,7 +8,7 @@ from src.scrapinghub_helper import *
 from src.tasks import calculate_wb_category_diff
 
 fake = Faker()
-fake.seed(0)
+Faker.seed(0)
 
 
 def make_categories(len_1, len_2, diff_count):
