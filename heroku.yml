@@ -7,7 +7,7 @@ build:
 run:
   web:
     command:
-      - uwsgi --http 0:$PORT --module srv.web:app --master --processes 4 --threads 2
+      - uwsgi --http 0:$PORT --module srv.web:app --master --processes 1 --threads 1
     image: bot
   worker:
     command:
