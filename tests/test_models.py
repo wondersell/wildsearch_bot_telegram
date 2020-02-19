@@ -1,5 +1,5 @@
 from freezegun import freeze_time
-
+import pytest
 from src.models import *
 
 
@@ -94,8 +94,30 @@ def test_user_log_command(bot_user):
 
 
 def test_today_catalog_requests_count(bot_user, create_telegram_command_logs):
-    create_telegram_command_logs(4, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/kantstovary/tochilki')
+    create_telegram_command_logs(4, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
     assert bot_user.today_catalog_requests_count() == 4
+
+
+def test_catalog_requests_left_count(bot_user, create_telegram_command_logs):
+    create_telegram_command_logs(3, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+    assert bot_user.catalog_requests_left_count() == 2
+
+
+def test_catalog_requests_count_resetting(bot_user, create_telegram_command_logs):
+    with freeze_time("2030-06-15 01:20:00"):
+        create_telegram_command_logs(1, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+
+    with freeze_time("2030-06-15 01:30:00"):
+        create_telegram_command_logs(1, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+
+    with freeze_time("2030-06-15 01:40:00"):
+        create_telegram_command_logs(3, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+
+    with freeze_time("2030-06-16 01:19:59"):
+        assert bot_user.can_send_more_catalog_requests() is False
+
+    with freeze_time("2030-06-16 01:20:01"):
+        assert bot_user.can_send_more_catalog_requests() is True
 
 
 def test_normal_user_can_send_catalog_requests(bot_user):
@@ -108,5 +130,30 @@ def test_blocked_user_can_not_send_requests(bot_user):
 
 
 def test_throttled_user(bot_user, create_telegram_command_logs):
-    create_telegram_command_logs(5, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/kantstovary/tochilki')
+    create_telegram_command_logs(5, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
     assert bot_user.can_send_more_catalog_requests() is False
+
+
+@pytest.mark.parametrize('log_count, expected_date', [
+    [0, datetime(2030, 1, 15, 1, 30)],
+    [3, datetime(2030, 1, 15, 1, 30)],
+    [5, datetime(2030, 1, 16, 1, 30)],
+])
+@freeze_time("2030-01-15 01:30:00")
+def test_next_free_catalog_request_time_no_logs(bot_user, create_telegram_command_logs, log_count, expected_date):
+    create_telegram_command_logs(log_count, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+
+    assert bot_user.next_free_catalog_request_time() == expected_date
+
+
+def test_next_free_catalog_request_time_no_logs_tricky(bot_user, create_telegram_command_logs):
+    with freeze_time("2030-06-15 01:20:00"):
+        create_telegram_command_logs(1, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+
+    with freeze_time("2030-06-15 01:30:00"):
+        create_telegram_command_logs(1, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+
+    with freeze_time("2030-06-15 01:40:00"):
+        create_telegram_command_logs(3, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+
+    assert bot_user.next_free_catalog_request_time() == datetime(2030, 6, 16, 1, 20)

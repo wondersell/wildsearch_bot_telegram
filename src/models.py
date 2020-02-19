@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from envparse import env
 from mongoengine import BooleanField, DateTimeField, Document, IntField, ReferenceField, StringField, connect
@@ -64,14 +64,28 @@ class User(Document):
 
         return True
 
-    def today_catalog_requests_count(self):
+    def today_catalog_requests_count(self) -> int:
         """Get catalog requests count based on requests log"""
-        midnight = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        time_from = datetime.now() - timedelta(hours=24)
 
         return LogCommandItem.objects(
             user=self.id,
             command='wb_catalog',
-            created_at__gte=midnight).count()
+            created_at__gte=time_from).count()
+
+    def catalog_requests_left_count(self) -> int:
+        return self.daily_catalog_requests_limit - self.today_catalog_requests_count()
+
+    def next_free_catalog_request_time(self) -> datetime:
+        if self.today_catalog_requests_count() < self.daily_catalog_requests_limit:
+            return datetime.now()
+
+        oldest_request = LogCommandItem.objects(
+            user=self.id,
+            command='wb_catalog',
+        ).order_by('+created_at').limit(5).first()
+
+        return oldest_request['created_at'] + timedelta(hours=24)
 
     def save(self, *args, **kwargs):
         """Add timestamps for creating and updating items"""

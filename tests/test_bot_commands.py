@@ -52,7 +52,7 @@ def test_command_catalog_throttled(mocked_reply_text, mocked_celery_delay, web_a
 
     web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
 
-    assert 'Сорян' in mocked_reply_text.call_args.kwargs['text']
+    assert 'лимит запросов закончился' in mocked_reply_text.call_args.kwargs['text']
 
 
 @patch('telegram.Bot.send_message')
@@ -62,7 +62,7 @@ def test_command_start(mocked_reply_text, web_app, telegram_json_command):
     web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
 
     mocked_reply_text.assert_called()
-    assert 'Приветствую' in mocked_reply_text.call_args.kwargs['text']
+    assert 'Этот телеграм бот поможет собирать данные о товарах' in mocked_reply_text.call_args.kwargs['text']
 
 
 def test_create_update_from_json_mock(telegram_json_command):
@@ -88,8 +88,8 @@ def test_command_analyse_category(mocked_logger_info, mocked_bot_send_message, w
 
 @patch('telegram.Bot.send_message')
 @patch('logging.Logger.info')
-def test_command_info(mocked_logger_info, mocked_bot_send_message, web_app, telegram_json_callback):
-    telegram_json = telegram_json_callback(callback='keyboard_info')
+def test_command_info(mocked_logger_info, mocked_bot_send_message, web_app, telegram_json_message):
+    telegram_json = telegram_json_message(message='ℹ️ О сервисе')
 
     web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
 
