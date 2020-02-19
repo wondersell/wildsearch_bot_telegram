@@ -55,7 +55,7 @@ class User(Document):
     updated_at = DateTimeField()
 
     def can_send_more_catalog_requests(self) -> bool:
-        """Throttling here"""
+        """Throttling here."""
         if self.catalog_requests_blocked is True:
             return False
 
@@ -65,7 +65,7 @@ class User(Document):
         return True
 
     def today_catalog_requests_count(self) -> int:
-        """Get catalog requests count based on requests log"""
+        """Get catalog requests count based on requests log."""
         time_from = datetime.now() - timedelta(hours=24)
 
         return LogCommandItem.objects(
@@ -88,7 +88,7 @@ class User(Document):
         return oldest_request['created_at'] + timedelta(hours=24)
 
     def save(self, *args, **kwargs):
-        """Add timestamps for creating and updating items"""
+        """Add timestamps for creating and updating items."""
         if not self.created_at:
             self.created_at = datetime.now()
 
@@ -104,7 +104,7 @@ class LogCommandItem(Document):
     created_at = DateTimeField()
 
     def save(self, *args, **kwargs):
-        """Add timestamps for creating and updating items"""
+        """Add timestamps for creating and updating items."""
         if not self.created_at:
             self.created_at = datetime.now()
 

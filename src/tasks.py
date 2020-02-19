@@ -88,9 +88,9 @@ def calculate_wb_category_stats(job_id, chat_id):
 def schedule_wb_category_export(category_url, chat_id):
     try:
         wb_category_export(category_url, chat_id)
-        message = f"🧠Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут."
+        message = f'🧠Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут.'
     except Exception:
-        message = f"Произошла ошибка при запросе каталога, попробуйте запросить его позже"
+        message = f'Произошла ошибка при запросе каталога, попробуйте запросить его позже'
 
         pass
 
@@ -105,7 +105,7 @@ def send_wb_category_update_message(uid, message, files=None):
     bot.send_message(chat_id=uid, text=message)
 
     for file_name in files:
-        f = io.BytesIO()
-        s3.download_fileobj(env('AWS_S3_BUCKET_NAME'), file_name, f)
-        f.seek(0, 0)
-        bot.send_document(chat_id=uid, document=f, filename=file_name)
+        memory_file = io.BytesIO()
+        s3.download_fileobj(env('AWS_S3_BUCKET_NAME'), file_name, memory_file)
+        memory_file.seek(0, 0)
+        bot.send_document(chat_id=uid, document=memory_file, filename=file_name)

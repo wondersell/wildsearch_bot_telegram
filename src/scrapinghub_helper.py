@@ -28,22 +28,20 @@ def scheduled_jobs_count(sh, spider) -> int:
 
 
 def wb_category_export(url, chat_id) -> str:
-    """
-    Schedule WB category export on Scrapinghub
-    """
-    logger.info(f"Export {url} for chat #{chat_id}")
+    """Schedule WB category export on Scrapinghub."""
+    logger.info(f'Export {url} for chat #{chat_id}')
     sh = init_scrapinghub()
 
     if scheduled_jobs_count(sh, 'wb') > 1:
-        raise Exception("Spider wb has more than 1 queued jobs")
+        raise Exception('Spider wb has more than 1 queued jobs')
 
     job = sh['project'].jobs.run('wb', job_args={
         'category_url': url,
         'callback_url': env('WILDSEARCH_JOB_FINISHED_CALLBACK') + '/wb_category_export',
-        'callback_params': f"chat_id={chat_id}",
+        'callback_params': f'chat_id={chat_id}',
     })
 
-    logger.info(f"Export for category {url} will have job key {job.key}")
+    logger.info(f'Export for category {url} will have job key {job.key}')
     return 'https://app.scrapinghub.com/p/' + job.key
 
 
@@ -87,9 +85,7 @@ class WbCategoryComparator:
         self.s3_files = self.fill_types_with(None)
 
     def load_from_api(self):
-        """
-        Export last two scraped WB categories for comparison
-        """
+        """Export last two scraped WB categories for comparison."""
         sh = init_scrapinghub()
 
         jobs_summary = sh['project'].jobs.iter(has_tag=['daily_categories'], state='finished', count=2)
@@ -144,7 +140,8 @@ class WbCategoryComparator:
 
     def calculate_full_diff(self):
         """
-        Retrieve all different values from two dictionaries
+        Retrieve all different values from two dictionaries.
+
         Details: https://pythondata.com/quick-tip-comparing-two-pandas-dataframes-and-getting-the-differences/
         """
         df1 = pd.DataFrame(self.categories_old, columns=self._columns)
@@ -165,7 +162,8 @@ class WbCategoryComparator:
 
     def calculate_added_diff(self):
         """
-        Retrieve only new values from two dictionaries
+        Retrieve only new values from two dictionaries.
+
         :return:
         """
         df_old = pd.DataFrame(self.categories_old, columns=self._columns)
@@ -179,7 +177,8 @@ class WbCategoryComparator:
 
     def calculate_removed_diff(self):
         """
-        Retrieve only old values from two dictionaries
+        Retrieve only old values from two dictionaries.
+
         :return:
         """
         df_old = pd.DataFrame(self.categories_old, columns=self._columns)
@@ -298,7 +297,7 @@ class WbCategoryStats:
         return round(self.df['wb_price'].mean(), 2)
 
     def get_sales_sum(self):
-        return self.df["wb_turnover"].sum()
+        return self.df['wb_turnover'].sum()
 
     def get_sales_mean(self):
         return round(self.df['wb_turnover'].mean(), 2)
@@ -307,7 +306,7 @@ class WbCategoryStats:
         return round(self.df['wb_turnover'].median(), 2)
 
     def get_sales_count(self):
-        return self.df["wb_purchases_count"].sum()
+        return self.df['wb_purchases_count'].sum()
 
     def get_sales_mean_count(self):
         return round(self.df['wb_purchases_count'].mean(), 2)

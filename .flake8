@@ -1,3 +1,4 @@
 [flake8]
-    ignore = E501, E265, F811, W605
+    ignore = E501, N400, D
+    max-line-length = 120
     exclude = venv

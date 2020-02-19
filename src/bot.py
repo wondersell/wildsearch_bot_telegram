@@ -137,8 +137,8 @@ def start_bot(bot):
 
     dp.add_handler(CallbackQueryHandler(analyse_category, pattern='keyboard_analyse_category'))
     dp.add_handler(CallbackQueryHandler(help_catalog_link, pattern='keyboard_help_catalog_link'))
-    dp.add_handler(MessageHandler(Filters.text & Filters.regex('www\.wildberries\.ru/catalog/'), wb_catalog))
-    dp.add_handler(MessageHandler(Filters.text & Filters.regex('www\.wildberries\.ru/brands/'), wb_catalog))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/'), wb_catalog))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/brands/'), wb_catalog))
 
     dp.add_handler(MessageHandler(Filters.all, rnd))
 
