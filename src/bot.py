@@ -20,7 +20,7 @@ no_limits_menu_keyboard = InlineKeyboardMarkup([
 reply_keyboard = ReplyKeyboardMarkup([['ℹ️ О сервисе', '🚀 Увеличить лимит запросов']], resize_keyboard=True)
 
 
-def start(update: Update, context: CallbackContext):
+def help_start(update: Update, context: CallbackContext):
     logger.info('Start command received')
     user = user_get_by_update(update)
     log_command(user, 'start')
@@ -38,7 +38,7 @@ def start(update: Update, context: CallbackContext):
     )
 
 
-def analyse_category(update: Update, context: CallbackContext):
+def help_analyse_category(update: Update, context: CallbackContext):
     logger.info('Analyse category command received')
     user = user_get_by_update(update)
     log_command(user, 'analyse_category')
@@ -63,7 +63,7 @@ def help_catalog_link(update: Update, context: CallbackContext):
     )
 
 
-def info(update: Update, context: CallbackContext):
+def help_info(update: Update, context: CallbackContext):
     logger.info('Info command received')
     user = user_get_by_update(update)
     log_command(user, 'info')
@@ -75,7 +75,7 @@ def info(update: Update, context: CallbackContext):
     )
 
 
-def no_limits(update: Update, context: CallbackContext):
+def help_no_limits(update: Update, context: CallbackContext):
     logger.info('Info command received')
     user = user_get_by_update(update)
     log_command(user, 'no_limits')
@@ -84,6 +84,17 @@ def no_limits(update: Update, context: CallbackContext):
         chat_id=user.chat_id,
         text=f'Если вы хотите увеличить или снять лимит запросов напишите нам в чат поддержки запрос с фразой «Снимите лимит запросов».',
         reply_markup=no_limits_menu_keyboard,
+    )
+
+
+def help_command_not_found(update: Update, context: CallbackContext):
+    user = user_get_by_update(update)
+    log_command(user, 'rnd', update.message.text)
+
+    context.bot.send_message(
+        chat_id=user.chat_id,
+        text='⚠️🤷 Непонятная команда.\nСкорее всего, вы указали неправильную команду. Сейчас бот может анализировать только ссылки на каталоги Wildberries.',
+        reply_markup=catalog_menu_keyboard,
     )
 
 
@@ -102,17 +113,6 @@ def wb_catalog(update: Update, context: CallbackContext):
         )
 
 
-def rnd(update: Update, context: CallbackContext):
-    user = user_get_by_update(update)
-    log_command(user, 'rnd', update.message.text)
-
-    context.bot.send_message(
-        chat_id=user.chat_id,
-        text='⚠️🤷 Непонятная команда.\nСкорее всего, вы указали неправильную команду. Сейчас бот может анализировать только ссылки на каталоги Wildberries.',
-        reply_markup=catalog_menu_keyboard,
-    )
-
-
 def reset_webhook(bot, url, token):
     bot.delete_webhook()
     bot.set_webhook(url=url + token)
@@ -121,15 +121,16 @@ def reset_webhook(bot, url, token):
 def start_bot(bot):
     dp = Dispatcher(bot, None, workers=0, use_context=True)
 
-    dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(MessageHandler(Filters.text & Filters.regex('ℹ️ О сервисе'), info))
-    dp.add_handler(MessageHandler(Filters.text & Filters.regex('🚀 Увеличить лимит запросов'), no_limits))
+    dp.add_handler(CommandHandler('start', help_start))
 
-    dp.add_handler(CallbackQueryHandler(analyse_category, pattern='keyboard_analyse_category'))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex('ℹ️ О сервисе'), help_info))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex('🚀 Увеличить лимит запросов'), help_no_limits))
+
+    dp.add_handler(CallbackQueryHandler(help_analyse_category, pattern='keyboard_analyse_category'))
     dp.add_handler(CallbackQueryHandler(help_catalog_link, pattern='keyboard_help_catalog_link'))
+
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/brands/'), wb_catalog))
-
-    dp.add_handler(MessageHandler(Filters.all, rnd))
+    dp.add_handler(MessageHandler(Filters.all, help_command_not_found))
 
     return dp

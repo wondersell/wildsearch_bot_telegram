@@ -14,10 +14,12 @@ def bot_app(bot):
 
 @pytest.fixture
 def bot():
-    """Mocked instance of the bot"""
+    """Mocked instance of the bot."""
 
     class Bot:
         send_message = MagicMock()
+        delete_webhook = MagicMock()
+        set_webhook = MagicMock()
 
     return Bot()
 
@@ -65,3 +67,16 @@ def test_index_page(web_app):
 
     assert got.status_code == 200
     assert 'lucky_you' in got.text
+
+
+@patch('telegram.Bot.delete_webhook')
+@patch('telegram.Bot.set_webhook')
+def test_setting_webhooks(mocked_set_webhook, mocked_delete_webhook):
+    from src.bot import reset_webhook
+    from telegram import Bot
+
+    bot = Bot(env('TELEGRAM_API_TOKEN'))
+    reset_webhook(bot, 'https://wondersell.ru/', 'SUPERSECRETTOCKEN')
+
+    mocked_delete_webhook.assert_called()
+    mocked_set_webhook.assert_called()
