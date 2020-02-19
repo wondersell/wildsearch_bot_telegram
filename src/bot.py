@@ -122,6 +122,7 @@ def start_bot(bot):
     dp = Dispatcher(bot, None, workers=0, use_context=True)
 
     dp.add_handler(CommandHandler('start', help_start))
+    dp.add_handler(CommandHandler('help', help_start))
 
     dp.add_handler(MessageHandler(Filters.text & Filters.regex('ℹ️ О сервисе'), help_info))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex('🚀 Увеличить лимит запросов'), help_no_limits))

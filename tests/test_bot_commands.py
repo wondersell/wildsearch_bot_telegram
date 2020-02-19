@@ -45,6 +45,7 @@ def test_reply_messages(mocked_bot_send_message, web_app, telegram_json_message,
 
 @pytest.mark.parametrize('command, expected_text', [
     ['/start', 'Этот телеграм бот поможет собирать данные о товарах'],
+    ['/help', 'Этот телеграм бот поможет собирать данные о товарах'],
 ])
 @patch('telegram.Bot.send_message')
 def test_reply_commands(mocked_reply_text, web_app, telegram_json_command, command, expected_text):
