@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 import pytest
 import csv
-import os
 
 from src.scrapinghub_helper import *
 from src.tasks import get_cat_update_users, schedule_wb_category_export, calculate_wb_category_stats
@@ -50,13 +49,14 @@ def test_category_export_too_many_jobs_exception(mocked_jobs_count):
     assert str(e_info.value) == 'Spider wb has more than 1 queued jobs'
 
 
-def test_get_cat_update_users(monkeypatch):
-    monkeypatch.setenv('WILDSEARCH_TEST_USER_LIST', '1234,4321')
+def test_get_cat_update_users(bot_user):
+    bot_user.subscribe_to_wb_categories_updates = True
+    bot_user.save()
 
     users = get_cat_update_users()
 
-    assert '1234' in users
-    assert '4321' in users
+    assert len(users) == 1
+    assert users[0] == bot_user.chat_id
 
 
 @patch('scrapinghub.client.jobs.Jobs.count')

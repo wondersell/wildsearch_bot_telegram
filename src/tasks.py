@@ -5,6 +5,7 @@ import boto3
 from celery import Celery
 from envparse import env
 from telegram import Bot
+from .models import get_subscribed_to_wb_categories_updates
 
 from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, wb_category_export
 
@@ -26,7 +27,8 @@ s3 = boto3.client('s3')
 
 
 def get_cat_update_users():
-    return env('WILDSEARCH_TEST_USER_LIST').split(',')
+    users = get_subscribed_to_wb_categories_updates()
+    return list(map(lambda x: x.chat_id, users))
 
 
 @celery.task()

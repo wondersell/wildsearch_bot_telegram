@@ -157,3 +157,22 @@ def test_next_free_catalog_request_time_no_logs_tricky(bot_user, create_telegram
         create_telegram_command_logs(3, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
 
     assert bot_user.next_free_catalog_request_time() == datetime(2030, 6, 16, 1, 20)
+
+
+def test_get_subscribed_to_wb_categories_updates_subscribed(bot_user):
+    bot_user.subscribe_to_wb_categories_updates = True
+    bot_user.save()
+
+    subscribed_users = get_subscribed_to_wb_categories_updates()
+
+    assert subscribed_users.count() == 1
+    assert subscribed_users[0] == bot_user
+
+
+def test_get_subscribed_to_wb_categories_updates_not_subscribed(bot_user):
+    bot_user.subscribe_to_wb_categories_updates = False
+    bot_user.save()
+
+    subscribed_users = get_subscribed_to_wb_categories_updates()
+
+    assert subscribed_users.count() == 0

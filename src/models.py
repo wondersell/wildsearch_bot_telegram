@@ -45,12 +45,17 @@ def log_command(user, command: str, message: str = ''):
     ).save()
 
 
+def get_subscribed_to_wb_categories_updates() -> []:
+    return User.objects(subscribe_to_wb_categories_updates=True)
+
+
 class User(Document):
     chat_id = IntField(required=True, primary_key=True)
     user_name = StringField()
     full_name = StringField()
     daily_catalog_requests_limit = IntField(default=5)
     catalog_requests_blocked = BooleanField(default=False)
+    subscribe_to_wb_categories_updates = BooleanField(default=False)
     created_at = DateTimeField()
     updated_at = DateTimeField()
 
