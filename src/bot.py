@@ -9,16 +9,6 @@ from .models import log_command, user_get_by_update
 # включаем логи
 logger = logging.getLogger(__name__)
 
-"""
-start_menu_keyboard = [
-    [InlineKeyboardButton('🗄 Обновления категорий WB', callback_data='keyboard_follow_categories_updates')],
-    [InlineKeyboardButton('📊 Анализ выбранной категории', callback_data='keyboard_analyse_category')],
-    [InlineKeyboardButton('⭐️ Следить за категорией', callback_data='keyboard_follow_one_category_updates')],
-    [InlineKeyboardButton('🛍 Следить за товаром', callback_data='keyboard_follow_sku_updates')],
-    [InlineKeyboardButton('💁 Инфо', callback_data='keyboard_info')],
-]
-"""
-
 catalog_menu_keyboard = InlineKeyboardMarkup([
     [InlineKeyboardButton('💁‍️ Как правильно указать категорию?', callback_data='keyboard_help_catalog_link')],
 ])
