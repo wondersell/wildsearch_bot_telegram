@@ -130,6 +130,7 @@ def send_category_requests_count_message(chat_id):
 
     bot.send_message(chat_id=chat_id, text=message)
 
+
 @celery.task()
 def check_requests_count_recovered(chat_id):
     user = user_get_by(chat_id=chat_id)
