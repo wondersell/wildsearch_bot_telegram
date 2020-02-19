@@ -1,10 +1,11 @@
 from unittest.mock import patch
+from freezegun import freeze_time
 
 import pytest
 import csv
 
 from src.scrapinghub_helper import *
-from src.tasks import get_cat_update_users, schedule_wb_category_export, calculate_wb_category_stats
+from src.tasks import get_cat_update_users, schedule_wb_category_export, calculate_wb_category_stats, check_requests_count_recovered, send_category_requests_count_message
 
 
 @pytest.fixture()
@@ -70,15 +71,17 @@ def test_category_export_correct(mocked_jobs_run, mocked_jobs_count):
     assert result_url == 'https://app.scrapinghub.com/p/1423'
 
 
+@patch('src.tasks.check_requests_count_recovered.apply_async')
 @patch('src.tasks.wb_category_export')
 @patch('telegram.Bot.send_message')
-def test_schedule_category_export_correct(mocked_send_message, mocked_category_export):
+def test_schedule_category_export_correct(mocked_send_message, mocked_category_export, mocked_check_requests_count_recovered):
     mocked_category_export.return_value='https://dummy.url/'
 
     schedule_wb_category_export('https://www.wildberries/category/url', '1423')
 
     mocked_category_export.assert_called()
     assert 'Мы обрабатываем ваш запрос' in mocked_send_message.call_args.kwargs['text']
+    mocked_check_requests_count_recovered.assert_called()
 
 
 @patch('src.tasks.wb_category_export')
@@ -92,13 +95,15 @@ def test_schedule_category_export_with_exception(mocked_send_message, mocked_cat
     assert 'Произошла ошибка' in mocked_send_message.call_args.kwargs['text']
 
 
+@patch('src.tasks.send_category_requests_count_message.delay')
 @patch('telegram.Bot.send_document')
 @patch('telegram.Bot.send_message')
-def test_category_export_task_sends_message(mocked_send_message, mocked_send_document):
+def test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message):
     calculate_wb_category_stats('414324/1/356', '1423')
 
     mocked_send_message.assert_called()
     mocked_send_document.assert_called()
+    mocked_send_category_requests_count_message.assert_called()
 
 
 def test_category_stats_load_from_list(stats, sample_category_correct):
@@ -157,3 +162,41 @@ def test_category_stats_get_file(stats, sample_category_with_names):
     export_file = stats.get_category_excel()
 
     assert os.path.isfile(export_file.name)
+
+
+@patch('telegram.Bot.send_message')
+def test_check_requests_count_recovered_fully(mocked_send_message, bot_user, create_telegram_command_logs):
+    bot_user.save()
+
+    with freeze_time("2030-06-15 01:20:00"):
+        create_telegram_command_logs(5, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+
+    with freeze_time("2030-06-16 01:21:00"):
+        check_requests_count_recovered(bot_user.chat_id)
+        assert 'Рок-н-ролл' in mocked_send_message.call_args.kwargs['text']
+
+
+@patch('telegram.Bot.send_message')
+def test_check_requests_count_recovered_not_fully(mocked_send_message, bot_user, create_telegram_command_logs):
+    bot_user.save()
+
+    with freeze_time("2030-06-15 01:20:00"):
+        create_telegram_command_logs(5, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+
+    with freeze_time("2030-06-16 01:19:00"):
+        check_requests_count_recovered(bot_user.chat_id)
+
+        mocked_send_message.assert_not_called()
+
+
+@patch('telegram.Bot.send_message')
+def test_send_category_requests_count_message(mocked_send_message, bot_user, create_telegram_command_logs):
+    bot_user.daily_catalog_requests_limit = 5
+    bot_user.save()
+
+    create_telegram_command_logs(4, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+
+    send_category_requests_count_message(bot_user.chat_id)
+
+    assert 'Вам доступно' in mocked_send_message.call_args.kwargs['text']
+    assert '🌕🌑🌑🌑🌑' in mocked_send_message.call_args.kwargs['text']

@@ -6,7 +6,7 @@ from celery import Celery
 from envparse import env
 from telegram import Bot
 
-from .models import get_subscribed_to_wb_categories_updates
+from .models import get_subscribed_to_wb_categories_updates, user_get_by
 from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, wb_category_export
 
 env.read_envfile()
@@ -85,12 +85,17 @@ def calculate_wb_category_stats(job_id, chat_id):
         filename=f'{stats.get_category_name()} на Wildberries.xlsx',
     )
 
+    send_category_requests_count_message.delay(chat_id)
+
 
 @celery.task()
 def schedule_wb_category_export(category_url, chat_id):
     try:
         wb_category_export(category_url, chat_id)
+
         message = f'🧠Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут.'
+
+        check_requests_count_recovered.apply_async((), {'chat_id': chat_id}, countdown=24 * 60 * 60)
     except Exception:
         message = f'Произошла ошибка при запросе каталога, попробуйте запросить его позже'
 
@@ -111,3 +116,25 @@ def send_wb_category_update_message(uid, message, files=None):
         s3.download_fileobj(env('AWS_S3_BUCKET_NAME'), file_name, memory_file)
         memory_file.seek(0, 0)
         bot.send_document(chat_id=uid, document=memory_file, filename=file_name)
+
+
+@celery.task()
+def send_category_requests_count_message(chat_id):
+    user = user_get_by(chat_id=chat_id)
+
+    emojis_left = ''.join(map(lambda x: '🌕', range(user.catalog_requests_left_count())))
+    emojis_used = ''.join(map(lambda x: '🌑', range(user.today_catalog_requests_count())))
+    emojis = emojis_left + emojis_used
+
+    message = f'🔔 Вам доступно {user.catalog_requests_left_count()} из {user.daily_catalog_requests_limit} запросов.\n{emojis}\nЛимит восстановится через 24 часа с момента анализа.'
+
+    bot.send_message(chat_id=chat_id, text=message)
+
+@celery.task()
+def check_requests_count_recovered(chat_id):
+    user = user_get_by(chat_id=chat_id)
+
+    if user.catalog_requests_left_count() == user.daily_catalog_requests_limit:
+        emoji = ''.join(map(lambda x: '🌕', range(min(user.daily_catalog_requests_limit, 10))))  # here we are limiting the maximum number of emojis to 10
+        message = f'🤘 Рок-н-ролл! Вам доступно {user.daily_catalog_requests_limit} новых запросов категорий Wildberries для анализа. {emoji}'
+        bot.send_message(chat_id=chat_id, text=message)
