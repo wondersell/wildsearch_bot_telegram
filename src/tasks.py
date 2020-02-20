@@ -72,9 +72,9 @@ def calculate_wb_category_stats(job_id, chat_id):
 Самый дешевый: `{"{:,}".format(stats.get_goods_price_min())}` руб.
 Средняя цена: `{"{:,}".format(stats.get_goods_price_mean())}` руб.
 
-Объем продаж: `{"{:,}".format(stats.get_sales_sum())}` руб. (`{"{:,}".format(stats.get_sales_count())}` шт.)
-Средние продажи: `{"{:,}".format(stats.get_sales_mean())}` руб. (`{"{:,}".format(stats.get_sales_mean_count())}` шт.)
-Медиана продаж: `{"{:,}".format(stats.get_sales_median())}` руб. (`{"{:,}".format(stats.get_sales_median_count())}` шт.)
+Продаж всего: `{"{:,}".format(stats.get_sales_count())}` шт. (на `{"{:,}".format(stats.get_sales_sum())}` руб.)
+В среднем продаются по: `{"{:,}".format(stats.get_sales_mean_count())}` шт. (на `{"{:,}".format(stats.get_sales_mean())}` руб.)
+Медиана продаж: `{"{:,}".format(stats.get_sales_median_count())}` шт. (на `{"{:,}".format(stats.get_sales_median())}` руб.)
 """
 
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
@@ -93,7 +93,7 @@ def schedule_wb_category_export(category_url, chat_id):
     try:
         wb_category_export(category_url, chat_id)
 
-        message = f'🧠 Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут.'
+        message = f'⏳ Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут.'
 
         check_requests_count_recovered.apply_async((), {'chat_id': chat_id}, countdown=24 * 60 * 60)
     except Exception:
@@ -126,7 +126,7 @@ def send_category_requests_count_message(chat_id):
     emojis_used = ''.join(map(lambda x: '🌑', range(user.today_catalog_requests_count())))
     emojis = emojis_left + emojis_used
 
-    message = f'🔔 Вам доступно {user.catalog_requests_left_count()} из {user.daily_catalog_requests_limit} запросов.\n{emojis}\nЛимит восстановится через 24 часа с момента анализа.'
+    message = f'Вам доступно {user.catalog_requests_left_count()} из {user.daily_catalog_requests_limit} запросов\n{emojis}\n\nЛимит восстанавится через 24 часа с момента анализа.'
 
     bot.send_message(chat_id=chat_id, text=message)
 
