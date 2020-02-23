@@ -1,6 +1,5 @@
 import logging
 
-import json_log_formatter
 import sentry_sdk
 from envparse import env
 from sentry_sdk.integrations.celery import CeleryIntegration
