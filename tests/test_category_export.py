@@ -116,8 +116,8 @@ def test_category_stats_load_from_list(stats, sample_category_correct):
 @pytest.mark.parametrize('method_name, expected_value', [
     ['get_goods_count', 255],
     ['get_goods_price_max', 5213],
-    ['get_goods_price_mean', 760.09],
-    ['get_sales_mean', 18068.67],
+    ['get_goods_price_mean', 760],
+    ['get_sales_mean', 18069],
     ['get_sales_median', 3250],
     ['get_sales_sum', 4607512],
 ])
@@ -131,7 +131,7 @@ def test_category_stats_basic_stats_correct(stats, sample_category_correct, meth
     ['get_goods_count', 3],
     ['get_goods_price_max', 3],
     ['get_goods_price_mean', 2],
-    ['get_sales_mean', 4.67],
+    ['get_sales_mean', 5],
     ['get_sales_median', 4],
     ['get_sales_sum', 14],
     ['get_sales_mean_count', 2],

@@ -294,25 +294,25 @@ class WbCategoryStats:
         return self.df['wb_price'].min()
 
     def get_goods_price_mean(self):
-        return round(self.df['wb_price'].mean(), 2)
+        return round(self.df['wb_price'].mean())
 
     def get_sales_sum(self):
         return self.df['wb_turnover'].sum()
 
     def get_sales_mean(self):
-        return round(self.df['wb_turnover'].mean(), 2)
+        return round(self.df['wb_turnover'].mean())
 
     def get_sales_median(self):
-        return round(self.df['wb_turnover'].median(), 2)
+        return round(self.df['wb_turnover'].median())
 
     def get_sales_count(self):
         return self.df['wb_purchases_count'].sum()
 
     def get_sales_mean_count(self):
-        return round(self.df['wb_purchases_count'].mean(), 2)
+        return round(self.df['wb_purchases_count'].mean())
 
     def get_sales_median_count(self):
-        return round(self.df['wb_purchases_count'].median(), 2)
+        return round(self.df['wb_purchases_count'].median())
 
     def get_category_excel(self):
         temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix='wb_category_', mode='r+b', delete=True)
