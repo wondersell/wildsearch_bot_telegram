@@ -14,13 +14,13 @@ env.read_envfile()
 logging.basicConfig(format='[%(asctime)s][%(levelname)s] %(message)s',
                     level=logging.INFO)
 
-formatter = json_log_formatter.JSONFormatter()
+# formatter = json_log_formatter.JSONFormatter()
 
-json_handler = logging.FileHandler(filename='/var/log/wildsearch_app_log.json')
-json_handler.setFormatter(formatter)
+# json_handler = logging.FileHandler(filename='/var/log/wildsearch_app_log.json')
+# json_handler.setFormatter(formatter)
 
 logger = logging.getLogger(__name__)
-logger.addHandler(json_handler)
+# logger.addHandler(json_handler)
 
 
 # включаем Sentry
