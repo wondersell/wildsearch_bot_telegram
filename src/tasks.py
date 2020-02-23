@@ -62,7 +62,7 @@ def calculate_wb_category_diff():
 @celery.task()
 def calculate_wb_category_stats(job_id, chat_id):
     def format_number(number):
-        return '{:,}'.format(round(number)).replace(',', ' ')
+        return '{:,}'.format(int(number)).replace(',', ' ')
 
     stats = WbCategoryStats().fill_from_api(job_id)
 
