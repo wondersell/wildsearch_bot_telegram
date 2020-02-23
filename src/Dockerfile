@@ -7,7 +7,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN apt-get update && \
   apt-get --no-install-recommends --assume-yes install build-essential curl
 
-RUN curl -L https://raw.githubusercontent.com/DataDog/datadog-agent/master/cmd/agent/install_script.sh
+#RUN curl -L https://raw.githubusercontent.com/DataDog/datadog-agent/master/cmd/agent/install_script.sh
 
 RUN pip install uwsgi
 
