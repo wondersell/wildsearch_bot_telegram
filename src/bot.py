@@ -9,14 +9,6 @@ from .models import log_command, user_get_by_update
 # включаем логи
 logger = logging.getLogger(__name__)
 
-catalog_menu_keyboard = InlineKeyboardMarkup([
-    [InlineKeyboardButton('💁‍️ Как правильно указать категорию?', callback_data='keyboard_help_catalog_link')],
-])
-
-no_limits_menu_keyboard = InlineKeyboardMarkup([
-    [InlineKeyboardButton('👨‍🚀 Чат с поддержкой', url='http://wondersell.ru')],
-])
-
 reply_keyboard = ReplyKeyboardMarkup([['ℹ️ О сервисе', '🚀 Увеличить лимит запросов']], resize_keyboard=True)
 
 
@@ -34,7 +26,9 @@ def help_start(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=user.chat_id,
         text=f'📊 Этот телеграм бот поможет собирать данные о товарах на Wildberries и анализировать их.\n\n📲 Отправьте ссылку на интересующую категорию Wildberries, чтобы получить сводную информацию по ней.\n\n📑 Также вы получите Эксель файл с полной выгрузкой данных для самостоятельного и детального анализа.\n\n🔔  Вам доступно {user.catalog_requests_left_count()} из {user.daily_catalog_requests_limit} запросов. Ограничение обнулится через 24 часа с момента последнего анализа.',
-        reply_markup=catalog_menu_keyboard,
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton('💁‍️ Как правильно указать категорию?', callback_data='keyboard_help_catalog_link')],
+        ]),
     )
 
 
@@ -46,7 +40,9 @@ def help_analyse_category(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=user.chat_id,
         text='📊 Анализ выбранной категории\n\nОтправьте ссылку на страницу категории Wildberries, чтобы получить сводную информацию по ней.\n\nВ ответ придет:\n1. Общее количество доступных и скрытых товаров;\n2. Общее количество продаж;\n3. Среднее арифметическое продаж одного товара;\n4. Медиана продаж;\n5. Средняя цена;\n6. Цена самого дорого товара;\n7. Цена самого дешевого товара;\n8. Распределение продаж по ценовым диапазонам: дешевые, средние, дорогие;\n9. Файл со списком временно отсутствующих товаров.',
-        reply_markup=catalog_menu_keyboard,
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton('💁‍️ Как правильно указать категорию?', callback_data='keyboard_help_catalog_link')],
+        ]),
         disable_web_page_preview=True,
     )
 
@@ -71,7 +67,10 @@ def help_info(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=user.chat_id,
         text='📊 Этот телеграм бот поможет собирать данные о товарах на Wildberries и анализировать их.\n\n📲 Отправьте ссылку на интересующую категорию Wildberries, чтобы получить сводную информацию по ней.\n\n📑 Также вы получите Эксель файл с полной выгрузкой данных для самостоятельного и детального анализа.',
-        reply_markup=no_limits_menu_keyboard,
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton('💁‍️ Как правильно указать категорию?', callback_data='keyboard_help_catalog_link')],
+            [InlineKeyboardButton('👨‍🚀 Чат с поддержкой', url='http://wondersell.ru')],
+        ]),
     )
 
 
@@ -83,7 +82,9 @@ def help_no_limits(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=user.chat_id,
         text=f'Если вы хотите увеличить или снять лимит запросов напишите нам в чат поддержки запрос с фразой «Снимите лимит запросов».',
-        reply_markup=no_limits_menu_keyboard,
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton('👨‍🚀 Чат с поддержкой', url='http://wondersell.ru')],
+        ]),
     )
 
 
@@ -94,7 +95,9 @@ def help_command_not_found(update: Update, context: CallbackContext):
     context.bot.send_message(
         chat_id=user.chat_id,
         text='⚠️🤷 Непонятная команда.\nСкорее всего, вы указали неправильную команду. Сейчас бот может анализировать только ссылки на каталоги Wildberries.',
-        reply_markup=catalog_menu_keyboard,
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton('💁‍️ Как правильно указать категорию?', callback_data='keyboard_help_catalog_link')],
+        ]),
     )
 
 
