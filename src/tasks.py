@@ -17,6 +17,7 @@ celery.conf.update(
     task_always_eager=env('CELERY_ALWAYS_EAGER', cast=bool, default=False),
     task_serializer='pickle',  # we transfer binary data like photos or voice messages,
     accept_content=['pickle'],
+    redis_max_connections=env('CELERY_REDIS_MAX_CONNECTIONS', cast=int, default=None),
 )
 
 # включаем логи
