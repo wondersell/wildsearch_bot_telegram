@@ -61,6 +61,9 @@ def calculate_wb_category_diff():
 
 @celery.task()
 def calculate_wb_category_stats(job_id, chat_id):
+    def format_number(number):
+        return '{:,}'.format(round(number)).replace(',', ' ')
+
     stats = WbCategoryStats().fill_from_api(job_id)
 
     message = f"""
@@ -68,13 +71,13 @@ def calculate_wb_category_stats(job_id, chat_id):
 
 Количество товаров: `{stats.get_goods_count()}`
 
-Самый дорогой: `{"{: }".format(stats.get_goods_price_max())}` руб.
-Самый дешевый: `{"{: }".format(stats.get_goods_price_min())}` руб.
-Средняя цена: `{"{: }".format(stats.get_goods_price_mean())}` руб.
+Самый дорогой: `{format_number(stats.get_goods_price_max())}` руб.
+Самый дешевый: `{format_number(stats.get_goods_price_min())}` руб.
+Средняя цена: `{format_number(stats.get_goods_price_mean())}` руб.
 
-Продаж всего: `{"{: }".format(stats.get_sales_count())}` шт. (на `{"{: }".format(stats.get_sales_sum())}` руб.)
-В среднем продаются по: `{"{: }".format(stats.get_sales_mean_count())}` шт. (на `{"{: }".format(stats.get_sales_mean())}` руб.)
-Медиана продаж: `{"{: }".format(stats.get_sales_median_count())}` шт. (на `{"{: }".format(stats.get_sales_median())}` руб.)
+Продаж всего: `{format_number(stats.get_sales_count())}` шт. (на `{format_number(stats.get_sales_sum())}` руб.)
+В среднем продаются по: `{format_number(stats.get_sales_mean_count())}` шт. (на `{format_number(stats.get_sales_mean())}` руб.)
+Медиана продаж: `{format_number(stats.get_sales_median_count())}` шт. (на `{format_number(stats.get_sales_median())}` руб.)
 """
 
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
