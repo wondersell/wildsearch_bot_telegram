@@ -60,6 +60,7 @@ services:
     ports:
       - 27017:27017
     volumes:
+      - mongo:/data/db
       - ./infra/mongodb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
   # Зачем в этой схеме нужен Nginx я пока не решил
@@ -71,3 +72,6 @@ services:
   #    - hook_catcher
   #  ports:
   #    - 80:80
+
+volumes:
+  mongo: {}
