@@ -17,7 +17,7 @@ celery.conf.update(
     task_always_eager=env('CELERY_ALWAYS_EAGER', cast=bool, default=False),
     task_serializer='pickle',  # we transfer binary data like photos or voice messages,
     accept_content=['pickle'],
-    #  redis_max_connections=env('CELERY_REDIS_MAX_CONNECTIONS', cast=int, default=None),
+    redis_max_connections=env('CELERY_REDIS_MAX_CONNECTIONS', default=None),
 )
 
 # включаем логи
@@ -96,13 +96,10 @@ def calculate_wb_category_stats(job_id, chat_id):
 def schedule_wb_category_export(category_url, chat_id):
     try:
         wb_category_export(category_url, chat_id)
-
         message = f'⏳ Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут.'
-
         check_requests_count_recovered.apply_async((), {'chat_id': chat_id}, countdown=24 * 60 * 60 + 60)
     except Exception:
         message = f'Произошла ошибка при запросе каталога, попробуйте запросить его позже'
-
         pass
 
     bot.send_message(chat_id=chat_id, text=message)
@@ -140,6 +137,7 @@ def check_requests_count_recovered(chat_id):
     user = user_get_by(chat_id=chat_id)
 
     if user.catalog_requests_left_count() == user.daily_catalog_requests_limit:
-        emoji = ''.join(map(lambda x: '🌕', range(min(user.daily_catalog_requests_limit, 10))))  # here we are limiting the maximum number of emojis to 10
+        # here we are limiting the maximum number of emojis to 10
+        emoji = ''.join(map(lambda x: '🌕', range(min(user.daily_catalog_requests_limit, 10))))
         message = f'🤘 Рок-н-ролл! Вам доступно {user.daily_catalog_requests_limit} новых запросов категорий Wildberries для анализа.\n{emoji}'
         bot.send_message(chat_id=chat_id, text=message)
