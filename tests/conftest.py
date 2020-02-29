@@ -108,7 +108,8 @@ def telegram_update_without_surname(telegram_json_message_without_surname):
 def create_telegram_command_logs(bot_user):
     def _create_telegram_catalog_logs(logs_count=1, command='/start', message='message'):
         for _ in range(logs_count):
-            log_command(bot_user, command, message)
+            cmd = log_command(bot_user, command, message)
+            cmd.set_status('success')
 
     return _create_telegram_catalog_logs
 

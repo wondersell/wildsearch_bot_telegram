@@ -76,6 +76,7 @@ class User(Document):
         return LogCommandItem.objects(
             user=self.id,
             command='wb_catalog',
+            status='success',
             created_at__gte=time_from).count()
 
     def catalog_requests_left_count(self) -> int:
@@ -106,7 +107,13 @@ class LogCommandItem(Document):
     user = ReferenceField(User)
     command = StringField()
     message = StringField()
+    status = StringField()
     created_at = DateTimeField()
+
+    def set_status(self, status):
+        self.status = status
+        self.save()
+        return self
 
     def save(self, *args, **kwargs):
         """Add timestamps for creating and updating items."""

@@ -6,6 +6,7 @@ import csv
 
 from src.scrapinghub_helper import *
 from src.tasks import get_cat_update_users, schedule_wb_category_export, calculate_wb_category_stats, check_requests_count_recovered, send_category_requests_count_message
+from src.models import log_command
 
 
 @pytest.fixture()
@@ -74,10 +75,11 @@ def test_category_export_correct(mocked_jobs_run, mocked_jobs_count):
 @patch('src.tasks.check_requests_count_recovered.apply_async')
 @patch('src.tasks.wb_category_export')
 @patch('telegram.Bot.send_message')
-def test_schedule_category_export_correct(mocked_send_message, mocked_category_export, mocked_check_requests_count_recovered):
+def test_schedule_category_export_correct(mocked_send_message, mocked_category_export, mocked_check_requests_count_recovered, bot_user):
     mocked_category_export.return_value='https://dummy.url/'
+    log_item = log_command(bot_user, 'wb_catalog', 'la-la-la')
 
-    schedule_wb_category_export('https://www.wildberries/category/url', '1423')
+    schedule_wb_category_export('https://www.wildberries/category/url', bot_user.chat_id, log_item.id)
 
     mocked_category_export.assert_called()
     assert 'Мы обрабатываем ваш запрос' in mocked_send_message.call_args.kwargs['text']
@@ -86,10 +88,11 @@ def test_schedule_category_export_correct(mocked_send_message, mocked_category_e
 
 @patch('src.tasks.wb_category_export')
 @patch('telegram.Bot.send_message')
-def test_schedule_category_export_with_exception(mocked_send_message, mocked_category_export):
+def test_schedule_category_export_with_exception(mocked_send_message, mocked_category_export, bot_user):
     mocked_category_export.side_effect = Exception('Spider wb has more than SCHEDULED_JOBS_THRESHOLD queued jobs')
+    log_item = log_command(bot_user, 'wb_catalog', 'la-la-la')
 
-    schedule_wb_category_export('https://www.wildberries/category/url', '1423')
+    schedule_wb_category_export('https://www.wildberries/category/url', bot_user.chat_id, log_item.id)
 
     mocked_category_export.assert_called()
     assert 'мы сейчас не можем обработать ваш запрос' in mocked_send_message.call_args.kwargs['text']

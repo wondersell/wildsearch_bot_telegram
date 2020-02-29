@@ -114,7 +114,7 @@ def help_command_not_found(update: Update, context: CallbackContext):
 
 def wb_catalog(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    log_command(user, 'wb_catalog', update.message.text)
+    log_item = log_command(user, 'wb_catalog', update.message.text)
 
     if user.can_send_more_catalog_requests() is False:
         dt = user.next_free_catalog_request_time()
@@ -123,7 +123,7 @@ def wb_catalog(update: Update, context: CallbackContext):
             text=f'💫⚠️ Ваш лимит запросов закончился.\nЧтобы продолжить работу, напишите нам в чат поддержки с запросом на снятие ограничения, либо дождитесь восстановления лимита. Это произойдет {dt.day}.{dt.month} в {dt.hour}:{dt.minute}',
         )
     else:
-        tasks.schedule_wb_category_export.delay(update.message.text, update.message.chat_id)
+        tasks.schedule_wb_category_export.delay(update.message.text, update.message.chat_id, log_item.id)
 
 
 def reset_webhook(bot, url, token):

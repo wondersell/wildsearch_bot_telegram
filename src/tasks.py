@@ -6,7 +6,7 @@ from celery import Celery
 from envparse import env
 from telegram import Bot
 
-from .models import get_subscribed_to_wb_categories_updates, user_get_by
+from .models import get_subscribed_to_wb_categories_updates, user_get_by, LogCommandItem
 from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, wb_category_export
 
 env.read_envfile()
@@ -93,13 +93,16 @@ def calculate_wb_category_stats(job_id, chat_id):
 
 
 @celery.task()
-def schedule_wb_category_export(category_url, chat_id):
+def schedule_wb_category_export(category_url, chat_id, log_id):
+    log_item = LogCommandItem.objects(id=log_id).first()
+
     try:
         wb_category_export(category_url, chat_id)
         message = f'⏳ Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут.'
         check_requests_count_recovered.apply_async((), {'chat_id': chat_id}, countdown=24 * 60 * 60 + 60)
-    except Exception:
-        message = f'Извините, мы сейчас не можем обработать ваш запрос – у нас образовалась слишком большая очередь на анализ категорий. Пожалуйста, подождите немного и отправьте запрос снова.'
+        log_item.set_status('success')
+    except Exception as e:
+        message = f'{e} Извините, мы сейчас не можем обработать ваш запрос – у нас образовалась слишком большая очередь на анализ категорий. Пожалуйста, подождите немного и отправьте запрос снова.'
         pass
 
     bot.send_message(chat_id=chat_id, text=message)
