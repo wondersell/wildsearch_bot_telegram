@@ -165,7 +165,7 @@ def test_category_stats_get_file(stats, sample_category_with_names):
 
 
 @patch('telegram.Bot.send_message')
-def test_check_requests_count_recovered_fully(mocked_send_message, bot_user, create_telegram_command_logs):
+def _test_check_requests_count_recovered_fully(mocked_send_message, bot_user, create_telegram_command_logs):
     bot_user.save()
 
     with freeze_time("2030-06-15 01:20:00"):

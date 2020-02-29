@@ -138,6 +138,8 @@ def check_requests_count_recovered(chat_id):
 
     if user.catalog_requests_left_count() == user.daily_catalog_requests_limit:
         # here we are limiting the maximum number of emojis to 10
-        emoji = ''.join(map(lambda x: '🌕', range(min(user.daily_catalog_requests_limit, 10))))
-        message = f'🤘 Рок-н-ролл! Вам доступно {user.daily_catalog_requests_limit} новых запросов категорий Wildberries для анализа.\n{emoji}'
-        bot.send_message(chat_id=chat_id, text=message)
+        # emoji = ''.join(map(lambda x: '🌕', range(min(user.daily_catalog_requests_limit, 10))))
+        # message = f'🤘 Рок-н-ролл! Вам доступно {user.daily_catalog_requests_limit} новых запросов категорий Wildberries для анализа.\n{emoji}'
+        # bot.send_message(chat_id=chat_id, text=message)
+
+        logger.info('Placeholder for sending recovered requests messages called')
