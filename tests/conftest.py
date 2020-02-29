@@ -1,12 +1,14 @@
-import pytest
-import mongoengine as me
 import json
 from unittest.mock import MagicMock, patch
-from falcon import testing
+
+import mongoengine as me
+import pytest
 from botocore.stub import Stubber
-from telegram import Bot, Update
-from src import scrapinghub_helper
 from envparse import env
+from falcon import testing
+from telegram import Bot, Update
+
+from src import scrapinghub_helper
 from src.models import *
 
 

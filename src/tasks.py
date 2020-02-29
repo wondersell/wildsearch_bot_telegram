@@ -6,7 +6,7 @@ from celery import Celery
 from envparse import env
 from telegram import Bot
 
-from .models import get_subscribed_to_wb_categories_updates, user_get_by, LogCommandItem
+from .models import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
 from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, wb_category_export
 
 env.read_envfile()

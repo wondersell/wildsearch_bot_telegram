@@ -1,5 +1,6 @@
-from freezegun import freeze_time
 import pytest
+from freezegun import freeze_time
+
 from src.models import *
 
 

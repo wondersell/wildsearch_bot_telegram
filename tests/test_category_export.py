@@ -1,12 +1,13 @@
+import csv
 from unittest.mock import patch
-from freezegun import freeze_time
 
 import pytest
-import csv
+from freezegun import freeze_time
 
-from src.scrapinghub_helper import *
-from src.tasks import get_cat_update_users, schedule_wb_category_export, calculate_wb_category_stats, check_requests_count_recovered, send_category_requests_count_message
 from src.models import log_command
+from src.scrapinghub_helper import *
+from src.tasks import (calculate_wb_category_stats, check_requests_count_recovered, get_cat_update_users,
+                       schedule_wb_category_export, send_category_requests_count_message)
 
 
 @pytest.fixture()
