@@ -146,6 +146,7 @@ def start_bot(bot):
 
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/brands/'), wb_catalog))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/promotions/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.all, help_command_not_found))
 
     return dp

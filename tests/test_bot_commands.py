@@ -8,6 +8,7 @@ from envparse import env
     ['https://www.wildberries.ru/catalog/dom-i-dacha/tovary-dlya-remonta/instrumenty/magnitnye-instrumenty'],
     ['https://www.wildberries.ru/brands/la-belle-femme'],
     ['https://www.wildberries.ru/catalog/0/search.aspx?subject=99&search=сапоги&sort=popular'],
+    ['https://www.wildberries.ru/promotions/eeh-mix-uhod-i-parfyumeriya'],
 ])
 @patch('src.tasks.schedule_wb_category_export.apply_async')
 def test_command_catalog(mocked_celery_delay, web_app, telegram_json_message, message):
