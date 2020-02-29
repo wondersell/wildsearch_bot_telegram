@@ -32,7 +32,7 @@ def wb_category_export(url, chat_id) -> str:
     logger.info(f'Export {url} for chat #{chat_id}')
     sh = init_scrapinghub()
 
-    if scheduled_jobs_count(sh, 'wb') > 1:
+    if scheduled_jobs_count(sh, 'wb') > env('SCHEDULED_JOBS_THRESHOLD', cast=int, default=1):
         raise Exception('Spider wb has more than 1 queued jobs')
 
     job = sh['project'].jobs.run('wb', job_args={

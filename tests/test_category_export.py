@@ -42,7 +42,7 @@ def test_scheduled_jobs_count(mocked_jobs_count):
 
 @patch('scrapinghub.client.jobs.Jobs.count')
 def test_category_export_too_many_jobs_exception(mocked_jobs_count):
-    mocked_jobs_count.return_value = 5
+    mocked_jobs_count.return_value = 11
 
     with pytest.raises(Exception) as e_info:
         wb_category_export('https://www.wildberries.ru/category/dummy', 123)
