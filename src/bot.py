@@ -15,7 +15,7 @@ reply_keyboard = ReplyKeyboardMarkup([['ℹ️ О сервисе', '🚀 Уве�
 def help_start(update: Update, context: CallbackContext):
     logger.info('Start command received')
     user = user_get_by_update(update)
-    log_command(user, 'start')
+    log_command(user, 'help_start')
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -35,7 +35,7 @@ def help_start(update: Update, context: CallbackContext):
 def help_analyse_category(update: Update, context: CallbackContext):
     logger.info('Analyse category command received')
     user = user_get_by_update(update)
-    log_command(user, 'analyse_category')
+    log_command(user, 'help_analyse_category')
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -62,35 +62,46 @@ def help_catalog_link(update: Update, context: CallbackContext):
 def help_info(update: Update, context: CallbackContext):
     logger.info('Info command received')
     user = user_get_by_update(update)
-    log_command(user, 'info')
+    log_command(user, 'help_info')
 
     context.bot.send_message(
         chat_id=user.chat_id,
         text='📊 Этот телеграм бот поможет собирать данные о товарах на Wildberries и анализировать их.\n\n📲 Отправьте ссылку на интересующую категорию Wildberries, чтобы получить сводную информацию по ней.\n\n📑 Также вы получите Эксель файл с полной выгрузкой данных для самостоятельного и детального анализа.',
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton('💁‍️ Как правильно указать категорию?', callback_data='keyboard_help_catalog_link')],
-            [InlineKeyboardButton('👨‍🚀 Чат с поддержкой', url='http://wondersell.ru')],
+            [InlineKeyboardButton('👨‍🚀 Написать в поддержку', callback_data='keyboard_help_info_feedback')],
         ]),
+    )
+
+
+def help_feedback(update: Update, context: CallbackContext):
+    logger.info('Feedback command received')
+    user = user_get_by_update(update)
+    log_command(user, 'help_feedback')
+
+    context.bot.send_message(
+        chat_id=user.chat_id,
+        text='✉️ Если вам нужна помощь, напишите нам весточку на wildsearch@wondersell.ru',
     )
 
 
 def help_no_limits(update: Update, context: CallbackContext):
     logger.info('Info command received')
     user = user_get_by_update(update)
-    log_command(user, 'no_limits')
+    log_command(user, 'help_no_limits')
 
     context.bot.send_message(
         chat_id=user.chat_id,
         text=f'Если вы хотите увеличить или снять лимит запросов напишите нам в чат поддержки запрос с фразой «Снимите лимит запросов».',
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton('👨‍🚀 Чат с поддержкой', url='http://wondersell.ru')],
+            [InlineKeyboardButton('👨‍🚀 Написать в поддержку', callback_data='keyboard_help_info_feedback')],
         ]),
     )
 
 
 def help_command_not_found(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    log_command(user, 'rnd', update.message.text)
+    log_command(user, 'help_command_not_found', update.message.text)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -132,6 +143,7 @@ def start_bot(bot):
 
     dp.add_handler(CallbackQueryHandler(help_analyse_category, pattern='keyboard_analyse_category'))
     dp.add_handler(CallbackQueryHandler(help_catalog_link, pattern='keyboard_help_catalog_link'))
+    dp.add_handler(CallbackQueryHandler(help_feedback, pattern='keyboard_help_info_feedback'))
 
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/brands/'), wb_catalog))

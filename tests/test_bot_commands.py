@@ -60,6 +60,7 @@ def test_reply_commands(mocked_reply_text, web_app, telegram_json_command, comma
 @pytest.mark.parametrize('callback, expected_text', [
     ['keyboard_help_catalog_link', 'скопируйте из адресной строки браузера ссылку'],
     ['keyboard_analyse_category', 'Анализ выбранной категории'],
+    ['keyboard_help_info_feedback', 'напишите нам весточку'],
 ])
 @patch('telegram.Bot.send_message')
 def test_reply_callbacks(mocked_bot_send_message, web_app, telegram_json_callback, callback, expected_text):
