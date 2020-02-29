@@ -47,7 +47,7 @@ def test_category_export_too_many_jobs_exception(mocked_jobs_count):
     with pytest.raises(Exception) as e_info:
         wb_category_export('https://www.wildberries.ru/category/dummy', 123)
 
-    assert str(e_info.value) == 'Spider wb has more than 1 queued jobs'
+    assert str(e_info.value) == 'Spider wb has more than SCHEDULED_JOBS_THRESHOLD queued jobs'
 
 
 def test_get_cat_update_users(bot_user):
@@ -87,12 +87,12 @@ def test_schedule_category_export_correct(mocked_send_message, mocked_category_e
 @patch('src.tasks.wb_category_export')
 @patch('telegram.Bot.send_message')
 def test_schedule_category_export_with_exception(mocked_send_message, mocked_category_export):
-    mocked_category_export.side_effect = Exception('Spider wb has more than 1 queued jobs')
+    mocked_category_export.side_effect = Exception('Spider wb has more than SCHEDULED_JOBS_THRESHOLD queued jobs')
 
     schedule_wb_category_export('https://www.wildberries/category/url', '1423')
 
     mocked_category_export.assert_called()
-    assert 'Произошла ошибка' in mocked_send_message.call_args.kwargs['text']
+    assert 'мы сейчас не можем обработать ваш запрос' in mocked_send_message.call_args.kwargs['text']
 
 
 @patch('src.tasks.send_category_requests_count_message.delay')
