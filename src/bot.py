@@ -12,10 +12,21 @@ logger = logging.getLogger(__name__)
 reply_keyboard = ReplyKeyboardMarkup([['ℹ️ О сервисе', '🚀 Увеличить лимит запросов']], resize_keyboard=True)
 
 
+def process_event(event, user):
+    logger.info(event)
+    tasks.track_amplitude.delay(user_id=user.chat_id, event=event)
+
+
+def process_command(slug, name, user, text=''):
+    log_item = log_command(user, slug, text)
+    process_event(name, user)
+
+    return log_item
+
+
 def help_start(update: Update, context: CallbackContext):
-    logger.info('Start command received')
     user = user_get_by_update(update)
-    log_command(user, 'help_start')
+    process_command(slug='help_start', name='Started bot', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -33,9 +44,8 @@ def help_start(update: Update, context: CallbackContext):
 
 
 def help_analyse_category(update: Update, context: CallbackContext):
-    logger.info('Analyse category command received')
     user = user_get_by_update(update)
-    log_command(user, 'help_analyse_category')
+    process_command(slug='help_analyse_category', name='Sent command "Help analyse category"', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -48,9 +58,8 @@ def help_analyse_category(update: Update, context: CallbackContext):
 
 
 def help_catalog_link(update: Update, context: CallbackContext):
-    logger.info('Help catalog link command received')
     user = user_get_by_update(update)
-    log_command(user, 'help_catalog_link')
+    process_command(slug='help_catalog_link', name='Sent command "Help catalog link"', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -60,9 +69,8 @@ def help_catalog_link(update: Update, context: CallbackContext):
 
 
 def help_info(update: Update, context: CallbackContext):
-    logger.info('Info command received')
     user = user_get_by_update(update)
-    log_command(user, 'help_info')
+    process_command(slug='help_info', name='Sent command "Info"', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -75,9 +83,8 @@ def help_info(update: Update, context: CallbackContext):
 
 
 def help_feedback(update: Update, context: CallbackContext):
-    logger.info('Feedback command received')
     user = user_get_by_update(update)
-    log_command(user, 'help_feedback')
+    process_command(slug='help_feedback', name='Sent command "Feedback"', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -86,9 +93,8 @@ def help_feedback(update: Update, context: CallbackContext):
 
 
 def help_no_limits(update: Update, context: CallbackContext):
-    logger.info('Info command received')
     user = user_get_by_update(update)
-    log_command(user, 'help_no_limits')
+    process_command(slug='help_no_limits', name='Sent command "No limits"', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -101,7 +107,7 @@ def help_no_limits(update: Update, context: CallbackContext):
 
 def help_command_not_found(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    log_command(user, 'help_command_not_found', update.message.text)
+    process_command(slug='help_command_not_found', name='Sent unknown command', user=user, text=update.message.text)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -114,7 +120,7 @@ def help_command_not_found(update: Update, context: CallbackContext):
 
 def wb_catalog(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    log_item = log_command(user, 'wb_catalog', update.message.text)
+    log_item = process_command(slug='wb_catalog', name='Sent command "WB catalog"', user=user, text=update.message.text)
 
     if user.can_send_more_catalog_requests() is False:
         dt = user.next_free_catalog_request_time()
@@ -122,8 +128,11 @@ def wb_catalog(update: Update, context: CallbackContext):
             chat_id=user.chat_id,
             text=f'💫⚠️ Ваш лимит запросов закончился.\nЧтобы продолжить работу, напишите нам в чат поддержки с запросом на снятие ограничения, либо дождитесь восстановления лимита. Это произойдет {dt.day}.{dt.month} в {dt.hour}:{dt.minute}',
         )
+        process_event(user=user, event='Received "Out of requests" error')
+
     else:
         tasks.schedule_wb_category_export.delay(update.message.text, update.message.chat_id, log_item.id)
+        process_event(user=user, event='Started WB catalog export')
 
 
 def reset_webhook(bot, url, token):

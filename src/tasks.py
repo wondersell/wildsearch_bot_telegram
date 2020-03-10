@@ -6,6 +6,7 @@ from celery import Celery
 from envparse import env
 from telegram import Bot
 
+from .amplitude_helper import AmplitudeLogger
 from .models import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
 from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, wb_category_export
 
@@ -22,6 +23,10 @@ celery.conf.update(
 
 # включаем логи
 logger = logging.getLogger(__name__)
+
+# включаем Amplitude
+if env('AMPLITUDE_API_KEY', default=None) is not None:
+    amplitude = AmplitudeLogger(env('AMPLITUDE_API_KEY'))
 
 bot = Bot(env('TELEGRAM_API_TOKEN'))
 s3 = boto3.client('s3')
@@ -90,6 +95,7 @@ def calculate_wb_category_stats(job_id, chat_id):
     )
 
     send_category_requests_count_message.delay(chat_id)
+    track_amplitude.delay(user_id=chat_id, event='Received WB category analyses')
 
 
 @celery.task()
@@ -103,6 +109,7 @@ def schedule_wb_category_export(category_url, chat_id, log_id):
         log_item.set_status('success')
     except Exception as e:
         message = f'{e} Извините, мы сейчас не можем обработать ваш запрос – у нас образовалась слишком большая очередь на анализ категорий. Пожалуйста, подождите немного и отправьте запрос снова.'
+        track_amplitude.delay(user_id=chat_id, event='Received "Too long queue" error')
         pass
 
     bot.send_message(chat_id=chat_id, text=message)
@@ -120,6 +127,8 @@ def send_wb_category_update_message(uid, message, files=None):
         s3.download_fileobj(env('AWS_S3_BUCKET_NAME'), file_name, memory_file)
         memory_file.seek(0, 0)
         bot.send_document(chat_id=uid, document=memory_file, filename=file_name)
+
+    track_amplitude.delay(user_id=uid, event='Received daily WB categories changes')
 
 
 @celery.task()
@@ -146,3 +155,9 @@ def check_requests_count_recovered(chat_id):
         # bot.send_message(chat_id=chat_id, text=message)
 
         logger.info('Placeholder for sending recovered requests messages called')
+
+
+@celery.task()
+def track_amplitude(user_id, event):
+    if amplitude:
+        amplitude.log(user_id=user_id, event=event)
