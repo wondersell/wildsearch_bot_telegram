@@ -1,8 +1,10 @@
 import json
+import os
 from unittest.mock import MagicMock, patch
 
 import mongoengine as me
 import pytest
+import requests_mock
 from botocore.stub import Stubber
 from envparse import env
 from falcon import testing
@@ -10,6 +12,16 @@ from telegram import Bot, Update
 
 from src import scrapinghub_helper
 from src.models import *
+
+
+@pytest.fixture
+def scrapinghub_api_response():
+    def _scrapinghub_api_response(mock):
+        with open(f'tests/mocks/{mock}.json') as f:
+            json_body = f.read()
+            return json.loads(json_body)
+
+    return _scrapinghub_api_response
 
 
 @pytest.fixture
@@ -134,6 +146,16 @@ def s3_stub():
 def mongo(request):
     me.connection.disconnect()
     db = me.connect('mongotest', host='mongomock://localhost')
+
+
+#@pytest.fixture(autouse=True)
+def requests_mocker():
+    """Mock all requests.
+    This is an autouse fixture so that tests can't accidentally
+    perform real requests without being noticed.
+    """
+    with requests_mock.Mocker() as m:
+        yield m
 
 
 @pytest.fixture()

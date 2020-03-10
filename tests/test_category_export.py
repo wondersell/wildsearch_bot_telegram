@@ -33,18 +33,28 @@ def sample_category_with_names():
     return csv.DictReader(f)
 
 
-@patch('scrapinghub.client.jobs.Jobs.count')
-def test_scheduled_jobs_count(mocked_jobs_count):
-    mocked_jobs_count.return_value = 5
+@pytest.fixture()
+def set_scrapinghub_requests_mock(requests_mock, scrapinghub_api_response):
+    def _set_scrapinghub_requests_mock(pending_count=1, running_count=1, job_id='123/1/2'):
+        requests_mock.get('https://storage.scrapinghub.com/ids/414324/spider/wb', text='1')
+        requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=pending&spider=wb', text=f'{pending_count}')
+        requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=running&spider=wb', text=f'{running_count}')
+        requests_mock.post('https://app.scrapinghub.com/api/run.json', json={'status': 'ok', 'jobid': f'{job_id}'})
+        requests_mock.get(f'https://storage.scrapinghub.com/items/{job_id}?meta=_key', json=scrapinghub_api_response('scrapinghub_items'))
+
+    return _set_scrapinghub_requests_mock
+
+
+def test_scheduled_jobs_count(set_scrapinghub_requests_mock):
+    set_scrapinghub_requests_mock(pending_count=2, running_count=3)
 
     cnt = scheduled_jobs_count(init_scrapinghub(), 'wb')
 
-    assert cnt == 10
+    assert cnt == 5
 
 
-@patch('scrapinghub.client.jobs.Jobs.count')
-def test_category_export_too_many_jobs_exception(mocked_jobs_count):
-    mocked_jobs_count.return_value = 11
+def test_category_export_too_many_jobs_exception(set_scrapinghub_requests_mock):
+    set_scrapinghub_requests_mock(pending_count=2, running_count=10)
 
     with pytest.raises(Exception) as e_info:
         wb_category_export('https://www.wildberries.ru/category/dummy', 123)
@@ -62,27 +72,23 @@ def test_get_cat_update_users(bot_user):
     assert users[0] == bot_user.chat_id
 
 
-@patch('scrapinghub.client.jobs.Jobs.count')
-@patch('scrapinghub.client.jobs.Jobs.run')
-def test_category_export_correct(mocked_jobs_run, mocked_jobs_count):
-    mocked_jobs_count.return_value = 0
-    mocked_jobs_run.return_value.key = '1423'
+def test_category_export_correct(set_scrapinghub_requests_mock):
+    set_scrapinghub_requests_mock(job_id='123/1/1234')
 
-    result_url = wb_category_export('https://www.wildberries.ru/category/dummy', 123)
+    result_url = wb_category_export('https://www.wildberries.ru/category/dummy', 321)
 
-    assert result_url == 'https://app.scrapinghub.com/p/1423'
+    assert result_url == 'https://app.scrapinghub.com/p/123/1/1234'
 
 
 @patch('src.tasks.check_requests_count_recovered.apply_async')
-@patch('src.tasks.wb_category_export')
 @patch('telegram.Bot.send_message')
-def test_schedule_category_export_correct(mocked_send_message, mocked_category_export, mocked_check_requests_count_recovered, bot_user):
-    mocked_category_export.return_value='https://dummy.url/'
+def test_schedule_category_export_correct(mocked_send_message, mocked_check_requests_count_recovered, bot_user, set_scrapinghub_requests_mock):
+    set_scrapinghub_requests_mock(job_id='123/1/1234')
+
     log_item = log_command(bot_user, 'wb_catalog', 'la-la-la')
 
     schedule_wb_category_export('https://www.wildberries/category/url', bot_user.chat_id, log_item.id)
 
-    mocked_category_export.assert_called()
     assert 'Мы обрабатываем ваш запрос' in mocked_send_message.call_args.kwargs['text']
     mocked_check_requests_count_recovered.assert_called()
 
@@ -99,11 +105,15 @@ def test_schedule_category_export_with_exception(mocked_send_message, mocked_cat
     assert 'мы сейчас не можем обработать ваш запрос' in mocked_send_message.call_args.kwargs['text']
 
 
+@patch('src.scrapinghub_helper.WbCategoryStats.fill_from_api')
 @patch('src.tasks.send_category_requests_count_message.delay')
 @patch('telegram.Bot.send_document')
 @patch('telegram.Bot.send_message')
-def test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message):
-    calculate_wb_category_stats('414324/1/356', '1423')
+def test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message, mocked_fill_from_api, set_scrapinghub_requests_mock, scrapinghub_api_response):
+    set_scrapinghub_requests_mock(job_id='123/1/1234')
+    mocked_fill_from_api.return_value = WbCategoryStats().load_from_list(scrapinghub_api_response('scrapinghub_items'))
+
+    calculate_wb_category_stats('123/1/1234', '1423')
 
     mocked_send_message.assert_called()
     mocked_send_document.assert_called()
