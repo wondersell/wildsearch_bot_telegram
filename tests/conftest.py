@@ -148,7 +148,7 @@ def mongo(request):
     db = me.connect('mongotest', host='mongomock://localhost')
 
 
-#@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True)
 def requests_mocker():
     """Mock all requests.
     This is an autouse fixture so that tests can't accidentally

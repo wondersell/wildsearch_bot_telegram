@@ -14,11 +14,22 @@ reply_keyboard = ReplyKeyboardMarkup([['ℹ️ О сервисе', '🚀 Уве�
 
 def process_event(event, user):
     logger.info(event)
-    tasks.track_amplitude.delay(user_id=user.chat_id, event=event)
+    tasks.track_amplitude.delay(chat_id=user.chat_id, event=event)
 
 
-def process_command(slug, name, user, text=''):
-    log_item = log_command(user, slug, text)
+def process_command(name, user, text=''):
+    slug_list = {
+        'Started bot': 'help_start',
+        'Sent command "Help analyse category"': 'help_analyse_category',
+        'Sent command "Help catalog link"': 'help_catalog_link',
+        'Sent command "Info"': 'help_info',
+        'Sent command "Feedback"': 'help_feedback',
+        'Sent command "No limits"': 'help_no_limits',
+        'Sent unknown command': 'help_command_not_found',
+        'Sent command "WB catalog"': 'wb_catalog',
+    }
+
+    log_item = log_command(user, slug_list[name], text)
     process_event(name, user)
 
     return log_item
@@ -26,7 +37,7 @@ def process_command(slug, name, user, text=''):
 
 def help_start(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    process_command(slug='help_start', name='Started bot', user=user)
+    process_command(name='Started bot', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -45,7 +56,7 @@ def help_start(update: Update, context: CallbackContext):
 
 def help_analyse_category(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    process_command(slug='help_analyse_category', name='Sent command "Help analyse category"', user=user)
+    process_command(name='Sent command "Help analyse category"', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -59,7 +70,7 @@ def help_analyse_category(update: Update, context: CallbackContext):
 
 def help_catalog_link(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    process_command(slug='help_catalog_link', name='Sent command "Help catalog link"', user=user)
+    process_command(name='Sent command "Help catalog link"', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -70,7 +81,7 @@ def help_catalog_link(update: Update, context: CallbackContext):
 
 def help_info(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    process_command(slug='help_info', name='Sent command "Info"', user=user)
+    process_command(name='Sent command "Info"', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -84,7 +95,7 @@ def help_info(update: Update, context: CallbackContext):
 
 def help_feedback(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    process_command(slug='help_feedback', name='Sent command "Feedback"', user=user)
+    process_command(name='Sent command "Feedback"', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -94,7 +105,7 @@ def help_feedback(update: Update, context: CallbackContext):
 
 def help_no_limits(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    process_command(slug='help_no_limits', name='Sent command "No limits"', user=user)
+    process_command(name='Sent command "No limits"', user=user)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -107,7 +118,7 @@ def help_no_limits(update: Update, context: CallbackContext):
 
 def help_command_not_found(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    process_command(slug='help_command_not_found', name='Sent unknown command', user=user, text=update.message.text)
+    process_command(name='Sent unknown command', user=user, text=update.message.text)
 
     context.bot.send_message(
         chat_id=user.chat_id,
@@ -120,7 +131,7 @@ def help_command_not_found(update: Update, context: CallbackContext):
 
 def wb_catalog(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
-    log_item = process_command(slug='wb_catalog', name='Sent command "WB catalog"', user=user, text=update.message.text)
+    log_item = process_command(name='Sent command "WB catalog"', user=user, text=update.message.text)
 
     if user.can_send_more_catalog_requests() is False:
         dt = user.next_free_catalog_request_time()

@@ -95,11 +95,11 @@ def calculate_wb_category_stats(job_id, chat_id):
     )
 
     send_category_requests_count_message.delay(chat_id)
-    track_amplitude.delay(user_id=chat_id, event='Received WB category analyses')
+    track_amplitude.delay(chat_id=chat_id, event='Received WB category analyses')
 
 
 @celery.task()
-def schedule_wb_category_export(category_url, chat_id, log_id):
+def schedule_wb_category_export(category_url: str, chat_id: int, log_id):
     log_item = LogCommandItem.objects(id=log_id).first()
 
     try:
@@ -109,30 +109,30 @@ def schedule_wb_category_export(category_url, chat_id, log_id):
         log_item.set_status('success')
     except Exception as e:
         message = f'{e} Извините, мы сейчас не можем обработать ваш запрос – у нас образовалась слишком большая очередь на анализ категорий. Пожалуйста, подождите немного и отправьте запрос снова.'
-        track_amplitude.delay(user_id=chat_id, event='Received "Too long queue" error')
+        track_amplitude.delay(chat_id=chat_id, event='Received "Too long queue" error')
         pass
 
     bot.send_message(chat_id=chat_id, text=message)
 
 
 @celery.task()
-def send_wb_category_update_message(uid, message, files=None):
+def send_wb_category_update_message(chat_id: int, message: str, files=None):
     if files is None:
         files = []
 
-    bot.send_message(chat_id=uid, text=message)
+    bot.send_message(chat_id=chat_id, text=message)
 
     for file_name in files:
         memory_file = io.BytesIO()
         s3.download_fileobj(env('AWS_S3_BUCKET_NAME'), file_name, memory_file)
         memory_file.seek(0, 0)
-        bot.send_document(chat_id=uid, document=memory_file, filename=file_name)
+        bot.send_document(chat_id=chat_id, document=memory_file, filename=file_name)
 
-    track_amplitude.delay(user_id=uid, event='Received daily WB categories changes')
+    track_amplitude.delay(chat_id=chat_id, event='Received daily WB categories changes')
 
 
 @celery.task()
-def send_category_requests_count_message(chat_id):
+def send_category_requests_count_message(chat_id: int):
     user = user_get_by(chat_id=chat_id)
 
     emojis_left = ''.join(map(lambda x: '🌕', range(user.catalog_requests_left_count())))
@@ -145,7 +145,7 @@ def send_category_requests_count_message(chat_id):
 
 
 @celery.task()
-def check_requests_count_recovered(chat_id):
+def check_requests_count_recovered(chat_id: int):
     user = user_get_by(chat_id=chat_id)
 
     if user.catalog_requests_left_count() == user.daily_catalog_requests_limit:
@@ -158,6 +158,19 @@ def check_requests_count_recovered(chat_id):
 
 
 @celery.task()
-def track_amplitude(user_id, event):
+def track_amplitude(chat_id: int, event: str, event_properties=None, timestamp=None):
     if amplitude:
-        amplitude.log(user_id=user_id, event=event)
+        user = user_get_by(chat_id=chat_id)
+        amplitude.log(
+            user_id=chat_id,
+            event=event,
+            user_properties={
+                'Telegram chat ID': user.chat_id,
+                'Name': user.full_name,
+                'Telegram user name': user.user_name,
+                'Daily catalog request limit': user.daily_catalog_requests_limit,
+                'Subscribed to WB categories updates': user.subscribe_to_wb_categories_updates,
+            },
+            event_properties=event_properties,
+            timestamp=timestamp,
+        )

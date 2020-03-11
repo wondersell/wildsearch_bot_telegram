@@ -4,6 +4,8 @@ import pytest
 from envparse import env
 
 
+
+
 @pytest.mark.parametrize('message', [
     ['https://www.wildberries.ru/catalog/dom-i-dacha/tovary-dlya-remonta/instrumenty/magnitnye-instrumenty'],
     ['https://www.wildberries.ru/brands/la-belle-femme'],
