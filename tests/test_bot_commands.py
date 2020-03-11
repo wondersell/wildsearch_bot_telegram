@@ -4,8 +4,6 @@ import pytest
 from envparse import env
 
 
-
-
 @pytest.mark.parametrize('message', [
     ['https://www.wildberries.ru/catalog/dom-i-dacha/tovary-dlya-remonta/instrumenty/magnitnye-instrumenty'],
     ['https://www.wildberries.ru/brands/la-belle-femme'],
@@ -35,7 +33,7 @@ def test_command_catalog_throttled(mocked_bot_send_message, mocked_celery_delay,
 @pytest.mark.parametrize('message_text, expected_text', [
     ['ℹ️ О сервисе', 'Этот телеграм бот поможет собирать данные о товарах на Wildberries'],
     ['🚀 Увеличить лимит запросов', 'Если вы хотите увеличить или снять лимит запросов'],
-    ['Я просто мимокрокодил', 'Непонятная команда']
+    ['Я просто мимокрокодил', 'Непонятная команда'],
 ])
 @patch('telegram.Bot.send_message')
 def test_reply_messages(mocked_bot_send_message, web_app, telegram_json_message, message_text, expected_text):

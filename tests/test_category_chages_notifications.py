@@ -1,10 +1,12 @@
 from unittest.mock import patch
 
+import pandas as pd
 import pytest
 from botocore.stub import ANY
+from envparse import env
 from faker import Faker
 
-from src.scrapinghub_helper import *
+from src.scrapinghub_helper import WbCategoryComparator, init_scrapinghub
 from src.tasks import calculate_wb_category_diff
 
 fake = Faker()
@@ -15,10 +17,10 @@ def make_categories(len_1, len_2, diff_count):
     lists = [[], []]
 
     # заполняем первый лист (старые категории)
-    for i in range(len_1):
+    for _ in range(len_1):
         lists[0].append({
             'wb_category_name': fake.company(),
-            'wb_category_url': fake.url()
+            'wb_category_url': fake.url(),
         })
 
     # заполняем второй лист категориями, которые должны совпадать
@@ -26,10 +28,10 @@ def make_categories(len_1, len_2, diff_count):
         lists[1].append(lists[0][i])
 
     # добиваем второй лист категориями, которые должны отличаться
-    for i in range(len_2 - len(lists[1])):
+    for _ in range(len_2 - len(lists[1])):
         lists[1].append({
             'wb_category_name': fake.company(),
-            'wb_category_url': fake.url()
+            'wb_category_url': fake.url(),
         })
 
     return lists
@@ -73,12 +75,12 @@ def test_load_from_lists(comparator):
 
 
 @pytest.mark.parametrize('lists, diff_added_cnt, diff_removed_cnt, diff_full_cnt', [
-    [make_categories(1, 2, 1),      1, 0, 1],       # когда есть одна новая категория
-    [make_categories(1, 2, 2),      2, 1, 3],       # когда все категории новые
-    [make_categories(10, 10, 0),    0, 0, 0],       # когда все категории старые
-    [make_categories(10, 5, 5),     5, 10, 15],     # когда категорий меньше и все новые
-    [make_categories(10, 5, 0),     0, 5, 5],       # когда категорий меньше и все старые
-    [make_categories(10, 15, 8),    8, 3, 11]       # когда категорий больше и частично новые
+    [make_categories(1, 2, 1), 1, 0, 1],  # когда есть одна новая категория
+    [make_categories(1, 2, 2), 2, 1, 3],  # когда все категории новые
+    [make_categories(10, 10, 0), 0, 0, 0],  # когда все категории старые
+    [make_categories(10, 5, 5), 5, 10, 15],  # когда категорий меньше и все новые
+    [make_categories(10, 5, 0), 0, 5, 5],  # когда категорий меньше и все старые
+    [make_categories(10, 15, 8), 8, 3, 11],  # когда категорий больше и частично новые
 ])
 def test_compare_two_lists_added_categories_count(comparator, lists, diff_added_cnt, diff_removed_cnt, diff_full_cnt):
     comparator.load_from_list(lists[0], lists[1])
@@ -128,7 +130,7 @@ def test_fill_types_with(_type):
     ['Спортивная обувь', 'https://www.wildberries.ru/catalog/0/search.aspx?search=%D0%A1%D0%BF%D0%BE%D1%80%D1%82%D0%B8%D0%B2%D0%BD%D0%B0%D1%8F%20%D0%BE%D0%B1%D1%83%D0%B2%D1%8C'],
     ['Распродажа обуви: -25% промокод', 'https://www.wildberries.ru/catalog/0/search.aspx?search=%D0%A0%D0%B0%D1%81%D0%BF%D1%80%D0%BE%D0%B4%D0%B0%D0%B6%D0%B0%20%D0%BE%D0%B1%D1%83%D0%B2%D0%B8%3A%20-25%25%20%D0%BF%D1%80%D0%BE%D0%BC%D0%BE%D0%BA%D0%BE%D0%B4'],
     ['Blu-Ray проигрыватели', 'https://www.wildberries.ru/catalog/0/search.aspx?search=Blu-Ray%20%D0%BF%D1%80%D0%BE%D0%B8%D0%B3%D1%80%D1%8B%D0%B2%D0%B0%D1%82%D0%B5%D0%BB%D0%B8'],
-    ['Рюкзаки, сумки, чехлы', 'https://www.wildberries.ru/catalog/0/search.aspx?search=%D0%A0%D1%8E%D0%BA%D0%B7%D0%B0%D0%BA%D0%B8%2C%20%D1%81%D1%83%D0%BC%D0%BA%D0%B8%2C%20%D1%87%D0%B5%D1%85%D0%BB%D1%8B']
+    ['Рюкзаки, сумки, чехлы', 'https://www.wildberries.ru/catalog/0/search.aspx?search=%D0%A0%D1%8E%D0%BA%D0%B7%D0%B0%D0%BA%D0%B8%2C%20%D1%81%D1%83%D0%BC%D0%BA%D0%B8%2C%20%D1%87%D0%B5%D1%85%D0%BB%D1%8B'],
 ])
 def test_search_url_field_generator(category_name, expected_url):
     comparator = WbCategoryComparator()
@@ -148,7 +150,7 @@ def test_search_url_field_present(comparator_random, _type):
 @pytest.mark.parametrize('category_url, expected_type', [
     ['https://www.wildberries.ru/catalog/novinki/chehly-dlya-prezervativov', 'Новинки'],
     ['https://www.wildberries.ru/promotions/novogodniy-promokod/gelevye-poloski', 'Промо'],
-    ['https://www.wildberries.ru/catalog/krasota/uhod-za-kozhey/uhod-za-litsom/bandazhi-kosmeticheskie', 'Обычная']
+    ['https://www.wildberries.ru/catalog/krasota/uhod-za-kozhey/uhod-za-litsom/bandazhi-kosmeticheskie', 'Обычная'],
 ])
 def test_category_type_field_generator(category_url, expected_type):
     comparator = WbCategoryComparator()
@@ -183,7 +185,6 @@ def test_get_s3_file_name_incorrect_params(comparator_random):
     assert 'type is not defined' in str(execinfo.value)
 
 
-
 @pytest.mark.parametrize('_type', ['added', 'removed', 'full'])
 def test_export_file_to_s3(comparator_random, s3_stub, _type):
     s3_stub.add_response(
@@ -191,9 +192,9 @@ def test_export_file_to_s3(comparator_random, s3_stub, _type):
         expected_params={
             'Bucket': env('AWS_S3_BUCKET_NAME'),
             'Body': ANY,
-            'Key': ANY
+            'Key': ANY,
         },
-        service_response={}
+        service_response={},
     )
 
     comparator_random.calculate_diff()
@@ -205,7 +206,7 @@ def test_export_file_to_s3(comparator_random, s3_stub, _type):
 @pytest.mark.parametrize('_type, expected_prefix', [
     ['added', 'added_'],
     ['removed', 'removed_'],
-    ['full', 'full_']
+    ['full', 'full_'],
 ])
 def test_export_file_prefix(comparator_random, s3_stub, _type, expected_prefix):
     s3_stub.add_response(
@@ -213,9 +214,9 @@ def test_export_file_prefix(comparator_random, s3_stub, _type, expected_prefix):
         expected_params={
             'Bucket': env('AWS_S3_BUCKET_NAME'),
             'Body': ANY,
-            'Key': ANY
+            'Key': ANY,
         },
-        service_response={}
+        service_response={},
     )
 
     comparator_random.calculate_diff()

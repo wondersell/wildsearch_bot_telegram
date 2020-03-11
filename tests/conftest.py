@@ -1,6 +1,5 @@
 import json
-import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import mongoengine as me
 import pytest
@@ -11,7 +10,7 @@ from falcon import testing
 from telegram import Bot, Update
 
 from src import scrapinghub_helper
-from src.models import *
+from src.models import User, log_command
 
 
 @pytest.fixture
@@ -130,7 +129,7 @@ def create_telegram_command_logs(bot_user):
 
 @pytest.fixture
 def web_app():
-    with patch('src.bot.reset_webhook') as reset_webhook_patched:
+    with patch('src.bot.reset_webhook'):
         from src import web
         return testing.TestClient(web.app)
 
@@ -145,7 +144,7 @@ def s3_stub():
 @pytest.fixture(autouse=True)
 def mongo(request):
     me.connection.disconnect()
-    db = me.connect('mongotest', host='mongomock://localhost')
+    me.connect('mongotest', host='mongomock://localhost')
 
 
 @pytest.fixture(autouse=True)
@@ -163,5 +162,5 @@ def bot_user():
     return User(
         chat_id=383716,
         user_name='wildsearch_test_user',
-        full_name='Wonder Sell'
+        full_name='Wonder Sell',
     )

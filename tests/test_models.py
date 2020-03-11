@@ -1,7 +1,10 @@
+from datetime import datetime
+
 import pytest
 from freezegun import freeze_time
 
-from src.models import *
+from src.models import (LogCommandItem, User, get_subscribed_to_wb_categories_updates, log_command, user_get_by,
+                        user_get_by_update)
 
 
 def test_user_get_by_chat_id():
@@ -12,39 +15,39 @@ def test_user_get_by_chat_id():
     assert u_created == u_fetched
 
 
-@freeze_time("2030-01-15")
+@freeze_time('2030-01-15')
 def test_user_created_updated_at():
-    u = User(chat_id='12345').save()
+    user = User(chat_id='12345').save()
 
-    assert u.created_at == datetime(2030, 1, 15)
-    assert u.updated_at == datetime(2030, 1, 15)
+    assert user.created_at == datetime(2030, 1, 15)
+    assert user.updated_at == datetime(2030, 1, 15)
 
 
-@freeze_time("2030-01-15")
+@freeze_time('2030-01-15')
 def test_user_updated_at_changing():
-    u = User(chat_id='123456').save()
+    user = User(chat_id='123456').save()
 
-    assert u.updated_at == datetime(2030, 1, 15)
+    assert user.updated_at == datetime(2030, 1, 15)
 
-    with freeze_time("2030-06-15"):
-        u.full_name = 'Oh my dummy'
-        u.save()
-        assert u.updated_at == datetime(2030, 6, 15)
-        assert u.created_at == datetime(2030, 1, 15)
+    with freeze_time('2030-06-15'):
+        user.full_name = 'Oh my dummy'
+        user.save()
+        assert user.updated_at == datetime(2030, 6, 15)
+        assert user.created_at == datetime(2030, 1, 15)
 
 
-@freeze_time("2030-01-15")
+@freeze_time('2030-01-15')
 def test_log_command_item_created_at():
     lci = LogCommandItem(command='/start').save()
 
     assert lci.created_at == datetime(2030, 1, 15)
 
 
-@freeze_time("2030-01-15")
+@freeze_time('2030-01-15')
 def test_log_command_item_created_at_existing():
     lci = LogCommandItem(command='/start').save()
 
-    with freeze_time("2030-06-15"):
+    with freeze_time('2030-06-15'):
         lci.message = 'Oh my dummy'
         lci.save()
         assert lci.created_at == datetime(2030, 1, 15)
@@ -105,19 +108,19 @@ def test_catalog_requests_left_count(bot_user, create_telegram_command_logs):
 
 
 def test_catalog_requests_count_resetting(bot_user, create_telegram_command_logs):
-    with freeze_time("2030-06-15 01:20:00"):
+    with freeze_time('2030-06-15 01:20:00'):
         create_telegram_command_logs(1, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
 
-    with freeze_time("2030-06-15 01:30:00"):
+    with freeze_time('2030-06-15 01:30:00'):
         create_telegram_command_logs(1, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
 
-    with freeze_time("2030-06-15 01:40:00"):
+    with freeze_time('2030-06-15 01:40:00'):
         create_telegram_command_logs(3, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
 
-    with freeze_time("2030-06-16 01:19:59"):
+    with freeze_time('2030-06-16 01:19:59'):
         assert bot_user.can_send_more_catalog_requests() is False
 
-    with freeze_time("2030-06-16 01:20:01"):
+    with freeze_time('2030-06-16 01:20:01'):
         assert bot_user.can_send_more_catalog_requests() is True
 
 
@@ -140,7 +143,7 @@ def test_throttled_user(bot_user, create_telegram_command_logs):
     [3, datetime(2030, 1, 15, 1, 30)],
     [5, datetime(2030, 1, 16, 1, 30)],
 ])
-@freeze_time("2030-01-15 01:30:00")
+@freeze_time('2030-01-15 01:30:00')
 def test_next_free_catalog_request_time_no_logs(bot_user, create_telegram_command_logs, log_count, expected_date):
     create_telegram_command_logs(log_count, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
 
@@ -148,13 +151,13 @@ def test_next_free_catalog_request_time_no_logs(bot_user, create_telegram_comman
 
 
 def test_next_free_catalog_request_time_no_logs_tricky(bot_user, create_telegram_command_logs):
-    with freeze_time("2030-06-15 01:20:00"):
+    with freeze_time('2030-06-15 01:20:00'):
         create_telegram_command_logs(1, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
 
-    with freeze_time("2030-06-15 01:30:00"):
+    with freeze_time('2030-06-15 01:30:00'):
         create_telegram_command_logs(1, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
 
-    with freeze_time("2030-06-15 01:40:00"):
+    with freeze_time('2030-06-15 01:40:00'):
         create_telegram_command_logs(3, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
 
     assert bot_user.next_free_catalog_request_time() == datetime(2030, 6, 16, 1, 20)

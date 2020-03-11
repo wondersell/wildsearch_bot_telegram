@@ -8,7 +8,7 @@ from envparse import env
 def bot_app(bot):
     """Our bot app, adds the magic curring `call` method to call it with fake bot"""
     from src import bot as bot_methods
-    setattr(bot_methods, 'call', lambda method, *args, **kwargs: getattr(bot_methods, method)(bot, *args, **kwargs))
+    setattr(bot_methods, 'call', lambda method, *args, **kwargs: getattr(bot_methods, method)(bot, *args, **kwargs))  # noqa
     return bot_methods
 
 

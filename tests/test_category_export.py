@@ -1,11 +1,13 @@
 import csv
+import os
 from unittest.mock import patch
 
+import pandas as pd
 import pytest
 from freezegun import freeze_time
 
 from src.models import log_command
-from src.scrapinghub_helper import *
+from src.scrapinghub_helper import WbCategoryStats, init_scrapinghub, scheduled_jobs_count, wb_category_export
 from src.tasks import (calculate_wb_category_stats, check_requests_count_recovered, get_cat_update_users,
                        schedule_wb_category_export, send_category_requests_count_message)
 
@@ -17,20 +19,20 @@ def stats():
 
 @pytest.fixture()
 def sample_category_correct():
-    f = open('tests/mocks/sample_wb_category_correct.csv')
-    return csv.DictReader(f)
+    mock_file = open('tests/mocks/sample_wb_category_correct.csv')
+    return csv.DictReader(mock_file)
 
 
 @pytest.fixture()
 def sample_category_missing():
-    f = open('tests/mocks/sample_wb_category_with_missing.csv')
-    return csv.DictReader(f)
+    mock_file = open('tests/mocks/sample_wb_category_with_missing.csv')
+    return csv.DictReader(mock_file)
 
 
 @pytest.fixture()
 def sample_category_with_names():
-    f = open('tests/mocks/sample_wb_category_with_names.csv')
-    return csv.DictReader(f)
+    mock_file = open('tests/mocks/sample_wb_category_with_names.csv')
+    return csv.DictReader(mock_file)
 
 
 @pytest.fixture()
@@ -182,10 +184,10 @@ def test_category_stats_get_file(stats, sample_category_with_names):
 def _test_check_requests_count_recovered_fully(mocked_send_message, bot_user, create_telegram_command_logs):
     bot_user.save()
 
-    with freeze_time("2030-06-15 01:20:00"):
+    with freeze_time('2030-06-15 01:20:00'):
         create_telegram_command_logs(5, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
 
-    with freeze_time("2030-06-16 01:21:00"):
+    with freeze_time('2030-06-16 01:21:00'):
         check_requests_count_recovered(bot_user.chat_id)
         assert 'Рок-н-ролл' in mocked_send_message.call_args.kwargs['text']
 
@@ -194,10 +196,10 @@ def _test_check_requests_count_recovered_fully(mocked_send_message, bot_user, cr
 def test_check_requests_count_recovered_not_fully(mocked_send_message, bot_user, create_telegram_command_logs):
     bot_user.save()
 
-    with freeze_time("2030-06-15 01:20:00"):
+    with freeze_time('2030-06-15 01:20:00'):
         create_telegram_command_logs(5, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
 
-    with freeze_time("2030-06-16 01:19:00"):
+    with freeze_time('2030-06-16 01:19:00'):
         check_requests_count_recovered(bot_user.chat_id)
 
         mocked_send_message.assert_not_called()
