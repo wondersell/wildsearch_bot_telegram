@@ -8,7 +8,7 @@ openpyxl==3.0.3
 PyYAML==5.3
 pandas==1.0.1
 envparse==0.2.0
-msgpack==0.6.1
+msgpack==1.0.0
 json_log_formatter==0.3.0
 
 celery==4.4.0
