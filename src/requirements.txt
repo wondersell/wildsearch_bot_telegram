@@ -13,7 +13,7 @@ json_log_formatter==0.3.0
 
 celery==4.4.0
 flower==0.9.4
-mongoengine==0.19.1
+mongoengine==0.20.0
 redis==3.5.0
 boto3==1.13.1
 
