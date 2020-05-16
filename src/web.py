@@ -25,7 +25,6 @@ class CallbackWbCategoryExportResource(object):
                     'job_id': req.get_param('job_id'),
                     'chat_id': req.get_param('chat_id'),
                 },
-                countdown=30,
             )
 
             resp.status = falcon.HTTP_200

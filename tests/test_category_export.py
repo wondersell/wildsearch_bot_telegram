@@ -1,5 +1,7 @@
 import csv
 import os
+import gzip
+import json
 from unittest.mock import patch
 
 import pandas as pd
@@ -22,8 +24,13 @@ def sample_category_data(current_path):
 
 @pytest.fixture()
 def sample_category_data_raw(current_path):
-    with open(current_path + f'/mocks/scrapinghub_items_raw.txt', 'r') as file:
-        data = file.read()
+    return open(current_path + f'/mocks/scrapinghub_items_raw.msgpack', 'rb').read()
+
+
+@pytest.fixture()
+def sample_category_data_json(current_path):
+    with open(current_path + f'/mocks/scrapinghub_items.json', 'r') as file:
+        data = json.load(file)
 
     return data
 
@@ -53,7 +60,7 @@ def set_scrapinghub_requests_mock(requests_mock, scrapinghub_api_response, sampl
         requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=pending&spider=wb', text=f'{pending_count}')
         requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=running&spider=wb', text=f'{running_count}')
         requests_mock.post('https://app.scrapinghub.com/api/run.json', json={'status': 'ok', 'jobid': f'{job_id}'})
-        requests_mock.get(f'https://storage.scrapinghub.com/items/{job_id}?meta=_key', text=sample_category_data_raw)
+        requests_mock.get(f'https://storage.scrapinghub.com/items/{job_id}?meta=_key', content=sample_category_data_raw, headers={'Content-Type': 'application/x-msgpack; charset=UTF-8'})
 
     return _set_scrapinghub_requests_mock
 
@@ -122,10 +129,23 @@ def test_schedule_category_export_with_exception(mocked_send_message, mocked_cat
 @patch('src.tasks.send_category_requests_count_message.delay')
 @patch('telegram.Bot.send_document')
 @patch('telegram.Bot.send_message')
-def _test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message, set_scrapinghub_requests_mock):
+def test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message, set_scrapinghub_requests_mock):
     set_scrapinghub_requests_mock(job_id='414324/1/735')
 
     calculate_wb_category_stats('414324/1/735', '1423')
+
+    required_stats = [
+        'Количество товаров',
+        'Самый дорогой',
+        'Самый дешевый',
+        'Средняя цена',
+        'Продаж всего',
+        'В среднем продаются по',
+        'Медиана продаж',
+    ]
+
+    for message in required_stats:
+        assert message in mocked_send_message.call_args.kwargs['text']
 
     mocked_send_message.assert_called()
     mocked_send_document.assert_called()
