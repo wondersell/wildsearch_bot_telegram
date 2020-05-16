@@ -15,7 +15,7 @@ celery==4.4.2
 flower==0.9.4
 mongoengine==0.20.0
 redis==3.5.2
-boto3==1.13.1
+boto3==1.13.11
 
 pytest==5.4.2
 pytest-cov==2.8.1
