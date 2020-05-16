@@ -7,6 +7,7 @@ services:
     command: uwsgi --http :8000 --module srv.web:app --workers 1 --threads 1
     volumes:
       - ./src:/srv:delegated
+      - ../seller-stats/seller_stats:/usr/local/lib/python3.8/site-packages/seller-stats:delegated
     env_file:
       - ./.env
     links:
@@ -23,6 +24,7 @@ services:
     command: celery -A srv.tasks:celery worker
     volumes:
       - ./src:/srv:delegated
+      - ../seller-stats/seller_stats:/usr/local/lib/python3.8/site-packages/seller-stats:delegated
     environment:
       - C_FORCE_ROOT=on
     env_file:

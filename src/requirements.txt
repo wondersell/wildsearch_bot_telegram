@@ -1,5 +1,6 @@
 python-telegram-bot==12.4.2
 falcon==2.0.0
+git+git://github.com/wondersell/seller-stats@master#egg=seller-stats
 
 scrapinghub==2.3.0
 sentry-sdk==0.14.1

@@ -1,5 +1,6 @@
 import io
 import logging
+import tempfile
 
 import boto3
 from celery import Celery
@@ -8,7 +9,11 @@ from telegram import Bot
 
 from .amplitude_helper import AmplitudeLogger
 from .models import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
-from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, wb_category_export
+from .scrapinghub_helper import wb_category_export
+
+from seller_stats.category_stats import CategoryStats
+from seller_stats.loaders import load_scrapinghub, transform_keys
+from seller_stats.formatters import format_currency as fcur, format_quantity as fquan, format_number as fnum
 
 env.read_envfile()
 
@@ -38,60 +43,56 @@ def get_cat_update_users():
 
 
 @celery.task()
-def calculate_wb_category_diff():
-    comparator = WbCategoryComparator()
-    comparator.load_from_api()
-    comparator.calculate_diff()
-
-    added_count = comparator.get_categories_count('added')
-    removed_count = comparator.get_categories_count('removed')
-
-    added_unique_count = comparator.get_categories_unique_count('added')
-
-    if added_unique_count == 0:
-        message = f'За последние сутки на Wildberries не добавилось категорий'
-        files = None
-    else:
-        comparator.dump_to_s3_file('added')
-        comparator.dump_to_s3_file('removed')
-        files = [
-            comparator.get_s3_file_name('added'),
-            comparator.get_s3_file_name('removed'),
-        ]
-
-        message = f'Обновились данные по категориям на Wildberries. C последнего  обновления добавилось {added_count} категорий, из них {added_unique_count} уникальных. Скрылось {removed_count} категорий'
-
-    for uid in get_cat_update_users():
-        send_wb_category_update_message.delay(uid, message, files)
-
-
-@celery.task()
 def calculate_wb_category_stats(job_id, chat_id):
-    def format_number(number):
-        return '{:,}'.format(int(number)).replace(',', ' ')
+    transform_rules = {
+        'wb_category_position': 'position',
+        'wb_price': 'price',
+        'wb_purchases_count': 'purchases',
+        'wb_rating': 'rating',
+        'wb_reviews_count': 'reviews',
+        'wb_id': 'id',
+        'wb_category_url': 'category_url',
+        'wb_category_name': 'category_name',
+        'wb_brand_name': 'brand_name',
+        'wb_brand_country': 'brand_country',
+        'wb_first_review_date': 'first_review',
+        'product_url': 'url',
+        'product_name': 'name',
+    }
 
-    stats = WbCategoryStats().fill_from_api(job_id)
+    data = load_scrapinghub(job_id)
+    data = transform_keys(data, rules=transform_rules)
+
+    stats = CategoryStats(data=data)
+
+    stats.calculate_basic_stats()
+    stats.calculate_monthly_stats()
+
+    df = stats.df
 
     message = f"""
-[{stats.get_category_name()}]({stats.get_category_url()})
+    [{stats.category_name()}]({stats.category_url()})
 
-Количество товаров: `{stats.get_goods_count()}`
+    Количество товаров: `{fnum(df.sku.sum())}`
 
-Самый дорогой: `{format_number(stats.get_goods_price_max())}` руб.
-Самый дешевый: `{format_number(stats.get_goods_price_min())}` руб.
-Средняя цена: `{format_number(stats.get_goods_price_mean())}` руб.
+    Самый дорогой: {fcur(df.price.max())}
+    Самый дешевый: {fcur(df.price.min())}
+    Средняя цена: {fcur(df.price.mean())}
 
-Продаж всего: `{format_number(stats.get_sales_count())}` шт. (на `{format_number(stats.get_sales_sum())}` руб.)
-В среднем продаются по: `{format_number(stats.get_sales_mean_count())}` шт. (на `{format_number(stats.get_sales_mean())}` руб.)
-Медиана продаж: `{format_number(stats.get_sales_median_count())}` шт. (на `{format_number(stats.get_sales_median())}` руб.)
-"""
+    Продаж всего: {fquan(df.purchases.sum())} (на {fcur(df.turnover.sum())})
+    В среднем продаются по: {fquan(df.purchases.mean())} (на {fcur(df.turnover.mean())})
+    Медиана продаж: {fquan(df.purchases.median())} (на {fcur(df.turnover.median())})
+    """
 
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
 
+    temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix='wb_category_', mode='r+b', delete=True)
+    df.to_excel(temp_file.name, index=None, header=True)
+
     bot.send_document(
         chat_id=chat_id,
-        document=stats.get_category_excel(),
-        filename=f'{stats.get_category_name()} на Wildberries.xlsx',
+        document=temp_file,
+        filename=f'{stats.category_name()} на Wildberries.xlsx',
     )
 
     send_category_requests_count_message.delay(chat_id)

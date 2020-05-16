@@ -35,14 +35,6 @@ class CallbackWbCategoryExportResource(object):
             resp.body = json.dumps({'error': 'wrong_chat_id'})
 
 
-class CallbackCategoryListResource(object):
-    def on_post(self, req, resp):
-        tasks.calculate_wb_category_diff.apply_async(countdown=600)
-
-        resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'status': 'ok'})
-
-
 class CallbackTelegramWebhook(object):
     def on_post(self, req, resp):
         bot_dispatcher.process_update(Update.de_json(json.load(req.bounded_stream), bot))
@@ -65,6 +57,5 @@ app = falcon.API()
 app.req_options.auto_parse_form_urlencoded = True
 
 app.add_route('/callback/wb_category_export', CallbackWbCategoryExportResource())
-app.add_route('/callback/category_list', CallbackCategoryListResource())
 app.add_route('/' + env('TELEGRAM_API_TOKEN'), CallbackTelegramWebhook())
 app.add_route('/', CallbackIndex())

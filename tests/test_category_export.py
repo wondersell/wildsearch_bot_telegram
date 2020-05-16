@@ -7,14 +7,25 @@ import pytest
 from freezegun import freeze_time
 
 from src.models import log_command
-from src.scrapinghub_helper import WbCategoryStats, init_scrapinghub, scheduled_jobs_count, wb_category_export
+from src.scrapinghub_helper import init_scrapinghub, scheduled_jobs_count, wb_category_export
 from src.tasks import (calculate_wb_category_stats, check_requests_count_recovered, get_cat_update_users,
                        schedule_wb_category_export, send_category_requests_count_message)
 
 
 @pytest.fixture()
-def stats():
-    return WbCategoryStats()
+def sample_category_data(current_path):
+    def _sample_category_data(mock='sample_category_transformed', fieldnames=None):
+        return [row for row in csv.DictReader(open(current_path + f'/mocks/{mock}.csv'), fieldnames=fieldnames)]
+
+    return _sample_category_data
+
+
+@pytest.fixture()
+def sample_category_data_raw(current_path):
+    with open(current_path + f'/mocks/scrapinghub_items_raw.txt', 'r') as file:
+        data = file.read()
+
+    return data
 
 
 @pytest.fixture()
@@ -36,21 +47,22 @@ def sample_category_with_names():
 
 
 @pytest.fixture()
-def set_scrapinghub_requests_mock(requests_mock, scrapinghub_api_response):
+def set_scrapinghub_requests_mock(requests_mock, scrapinghub_api_response, sample_category_data_raw):
     def _set_scrapinghub_requests_mock(pending_count=1, running_count=1, job_id='123/1/2'):
         requests_mock.get('https://storage.scrapinghub.com/ids/414324/spider/wb', text='1')
         requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=pending&spider=wb', text=f'{pending_count}')
         requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=running&spider=wb', text=f'{running_count}')
         requests_mock.post('https://app.scrapinghub.com/api/run.json', json={'status': 'ok', 'jobid': f'{job_id}'})
-        requests_mock.get(f'https://storage.scrapinghub.com/items/{job_id}?meta=_key', json=scrapinghub_api_response('scrapinghub_items'))
+        requests_mock.get(f'https://storage.scrapinghub.com/items/{job_id}?meta=_key', text=sample_category_data_raw)
 
     return _set_scrapinghub_requests_mock
 
 
 def test_scheduled_jobs_count(set_scrapinghub_requests_mock):
     set_scrapinghub_requests_mock(pending_count=2, running_count=3)
+    client, project = init_scrapinghub()
 
-    cnt = scheduled_jobs_count(init_scrapinghub(), 'wb')
+    cnt = scheduled_jobs_count(project, 'wb')
 
     assert cnt == 5
 
@@ -107,77 +119,17 @@ def test_schedule_category_export_with_exception(mocked_send_message, mocked_cat
     assert 'мы сейчас не можем обработать ваш запрос' in mocked_send_message.call_args.kwargs['text']
 
 
-@patch('src.scrapinghub_helper.WbCategoryStats.fill_from_api')
 @patch('src.tasks.send_category_requests_count_message.delay')
 @patch('telegram.Bot.send_document')
 @patch('telegram.Bot.send_message')
-def test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message, mocked_fill_from_api, set_scrapinghub_requests_mock, scrapinghub_api_response):
-    set_scrapinghub_requests_mock(job_id='123/1/1234')
-    mocked_fill_from_api.return_value = WbCategoryStats().load_from_list(scrapinghub_api_response('scrapinghub_items'))
+def _test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message, set_scrapinghub_requests_mock):
+    set_scrapinghub_requests_mock(job_id='414324/1/735')
 
-    calculate_wb_category_stats('123/1/1234', '1423')
+    calculate_wb_category_stats('414324/1/735', '1423')
 
     mocked_send_message.assert_called()
     mocked_send_document.assert_called()
     mocked_send_category_requests_count_message.assert_called()
-
-
-def test_category_stats_load_from_list(stats, sample_category_correct):
-    stats.load_from_list(sample_category_correct)
-
-    assert isinstance(stats.df, pd.DataFrame)
-    assert len(stats.df.index) == 255
-
-
-@pytest.mark.parametrize('method_name, expected_value', [
-    ['get_goods_count', 255],
-    ['get_goods_price_max', 5213],
-    ['get_goods_price_mean', 760],
-    ['get_sales_mean', 18069],
-    ['get_sales_median', 3250],
-    ['get_sales_sum', 4607512],
-])
-def test_category_stats_basic_stats_correct(stats, sample_category_correct, method_name, expected_value):
-    stats.load_from_list(sample_category_correct)
-
-    assert getattr(stats, method_name)() == expected_value
-
-
-@pytest.mark.parametrize('method_name, expected_value', [
-    ['get_goods_count', 3],
-    ['get_goods_price_max', 3],
-    ['get_goods_price_mean', 2],
-    ['get_sales_mean', 5],
-    ['get_sales_median', 4],
-    ['get_sales_sum', 14],
-    ['get_sales_mean_count', 2],
-    ['get_sales_median_count', 2],
-    ['get_sales_count', 6],
-])
-def test_category_stats_basic_stats_missing(stats, sample_category_missing, method_name, expected_value):
-    stats.load_from_list(sample_category_missing)
-
-    assert getattr(stats, method_name)() == expected_value
-
-
-def test_category_stats_get_category_name(stats, sample_category_with_names):
-    stats.load_from_list(sample_category_with_names)
-
-    assert stats.get_category_name() == 'Ювелирные иконы'
-
-
-def test_category_stats_get_category_url(stats, sample_category_with_names):
-    stats.load_from_list(sample_category_with_names)
-
-    assert stats.get_category_url() == 'https://www.wildberries.ru/catalog/yuvelirnye-ukrasheniya/ikony'
-
-
-def test_category_stats_get_file(stats, sample_category_with_names):
-    stats.load_from_list(sample_category_with_names)
-
-    export_file = stats.get_category_excel()
-
-    assert os.path.isfile(export_file.name)
 
 
 @patch('telegram.Bot.send_message')

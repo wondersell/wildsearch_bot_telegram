@@ -1,4 +1,5 @@
 import json
+import os
 from unittest.mock import patch
 
 import mongoengine as me
@@ -11,6 +12,11 @@ from telegram import Bot, Update
 
 from src import scrapinghub_helper
 from src.models import User, log_command
+
+
+@pytest.fixture()
+def current_path():
+    return os.path.dirname(os.path.abspath(__file__))
 
 
 @pytest.fixture
