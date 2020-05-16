@@ -49,7 +49,7 @@ def calculate_wb_category_diff():
     added_unique_count = comparator.get_categories_unique_count('added')
 
     if added_unique_count == 0:
-        message = f'За последние сутки на Wildberries не добавилось категорий'
+        message = 'За последние сутки на Wildberries не добавилось категорий'
         files = None
     else:
         comparator.dump_to_s3_file('added')
@@ -104,7 +104,7 @@ def schedule_wb_category_export(category_url: str, chat_id: int, log_id):
 
     try:
         wb_category_export(category_url, chat_id)
-        message = f'⏳ Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут.'
+        message = '⏳ Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут.'
         check_requests_count_recovered.apply_async((), {'chat_id': chat_id}, countdown=24 * 60 * 60 + 60)
         log_item.set_status('success')
     except Exception as e:
