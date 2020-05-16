@@ -1,6 +1,6 @@
 import logging
-import boto3
 
+import boto3
 from envparse import env
 from scrapinghub import ScrapinghubClient
 

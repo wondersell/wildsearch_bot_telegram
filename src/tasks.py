@@ -5,15 +5,16 @@ import tempfile
 import boto3
 from celery import Celery
 from envparse import env
+from seller_stats.category_stats import CategoryStats
+from seller_stats.formatters import format_currency as fcur
+from seller_stats.formatters import format_number as fnum
+from seller_stats.formatters import format_quantity as fquan
+from seller_stats.loaders import load_scrapinghub, transform_keys
 from telegram import Bot
 
 from .amplitude_helper import AmplitudeLogger
 from .models import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
 from .scrapinghub_helper import wb_category_export
-
-from seller_stats.category_stats import CategoryStats
-from seller_stats.loaders import load_scrapinghub, transform_keys
-from seller_stats.formatters import format_currency as fcur, format_quantity as fquan, format_number as fnum
 
 env.read_envfile()
 
