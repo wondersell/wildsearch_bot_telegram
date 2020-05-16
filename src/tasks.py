@@ -118,22 +118,6 @@ def schedule_wb_category_export(category_url: str, chat_id: int, log_id):
 
 
 @celery.task()
-def send_wb_category_update_message(chat_id: int, message: str, files=None):
-    if files is None:
-        files = []
-
-    bot.send_message(chat_id=chat_id, text=message)
-
-    for file_name in files:
-        memory_file = io.BytesIO()
-        s3.download_fileobj(env('AWS_S3_BUCKET_NAME'), file_name, memory_file)
-        memory_file.seek(0, 0)
-        bot.send_document(chat_id=chat_id, document=memory_file, filename=file_name)
-
-    track_amplitude.delay(chat_id=chat_id, event='Received daily WB categories changes')
-
-
-@celery.task()
 def send_category_requests_count_message(chat_id: int):
     user = user_get_by(chat_id=chat_id)
 
