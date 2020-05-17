@@ -71,18 +71,18 @@ def calculate_wb_category_stats(job_id, chat_id):
     df = stats.df
 
     message = f"""
-    [{stats.category_name()}]({stats.category_url()})
+[{stats.category_name()}]({stats.category_url()})
 
-    Количество товаров: `{fnum(df.sku.sum())}`
+Количество товаров: `{fnum(df.sku.sum())}`
 
-    Самый дорогой: {fcur(df.price.max())}
-    Самый дешевый: {fcur(df.price.min())}
-    Средняя цена: {fcur(df.price.mean())}
+Самый дорогой: {fcur(df.price.max())}
+Самый дешевый: {fcur(df.price.min())}
+Средняя цена: {fcur(df.price.mean())}
 
-    Продаж всего: {fquan(df.purchases.sum())} (на {fcur(df.turnover.sum())})
-    В среднем продаются по: {fquan(df.purchases.mean())} (на {fcur(df.turnover.mean())})
-    Медиана продаж: {fquan(df.purchases.median())} (на {fcur(df.turnover.median())})
-    """
+Продаж всего: {fquan(df.purchases.sum())} (на {fcur(df.turnover.sum())})
+В среднем продаются по: {fquan(df.purchases.mean())} (на {fcur(df.turnover.mean())})
+Медиана продаж: {fquan(df.purchases.median())} (на {fcur(df.turnover.median())})
+"""
 
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
 
