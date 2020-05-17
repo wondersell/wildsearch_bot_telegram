@@ -1,5 +1,3 @@
-import csv
-import json
 from unittest.mock import patch
 
 import pytest
@@ -12,42 +10,8 @@ from src.tasks import (calculate_wb_category_stats, check_requests_count_recover
 
 
 @pytest.fixture()
-def sample_category_data(current_path):
-    def _sample_category_data(mock='sample_category_transformed', fieldnames=None):
-        return list(csv.DictReader(open(current_path + f'/mocks/{mock}.csv'), fieldnames=fieldnames))
-
-    return _sample_category_data
-
-
-@pytest.fixture()
 def sample_category_data_raw(current_path):
     return open(current_path + f'/mocks/scrapinghub_items_raw.msgpack', 'rb').read()
-
-
-@pytest.fixture()
-def sample_category_data_json(current_path):
-    with open(current_path + f'/mocks/scrapinghub_items.json', 'r') as file:
-        data = json.load(file)
-
-    return data
-
-
-@pytest.fixture()
-def sample_category_correct():
-    mock_file = open('tests/mocks/sample_wb_category_correct.csv')
-    return csv.DictReader(mock_file)
-
-
-@pytest.fixture()
-def sample_category_missing():
-    mock_file = open('tests/mocks/sample_wb_category_with_missing.csv')
-    return csv.DictReader(mock_file)
-
-
-@pytest.fixture()
-def sample_category_with_names():
-    mock_file = open('tests/mocks/sample_wb_category_with_names.csv')
-    return csv.DictReader(mock_file)
 
 
 @pytest.fixture()
