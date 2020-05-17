@@ -15,7 +15,7 @@ def sample_category_data_raw(current_path):
 
 
 @pytest.fixture()
-def set_scrapinghub_requests_mock(requests_mock, scrapinghub_api_response, sample_category_data_raw):
+def set_scrapinghub_requests_mock(requests_mock, sample_category_data_raw):
     def _set_scrapinghub_requests_mock(pending_count=1, running_count=1, job_id='123/1/2'):
         requests_mock.get('https://storage.scrapinghub.com/ids/414324/spider/wb', text='1')
         requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=pending&spider=wb', text=f'{pending_count}')

@@ -20,16 +20,6 @@ def current_path():
 
 
 @pytest.fixture
-def scrapinghub_api_response():
-    def _scrapinghub_api_response(mock):
-        with open(f'tests/mocks/{mock}.json') as f:
-            json_body = f.read()
-            return json.loads(json_body)
-
-    return _scrapinghub_api_response
-
-
-@pytest.fixture
 def telegram_json_message():
     def _telegram_json_message(message=None):
         with open('tests/mocks/tg_request_text.json') as f:
