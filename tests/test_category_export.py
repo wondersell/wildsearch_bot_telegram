@@ -11,7 +11,7 @@ from src.tasks import (calculate_wb_category_stats, check_requests_count_recover
 
 @pytest.fixture()
 def sample_category_data_raw(current_path):
-    return open(current_path + f'/mocks/scrapinghub_items_raw.msgpack', 'rb').read()
+    return open(current_path + '/mocks/scrapinghub_items_raw.msgpack', 'rb').read()
 
 
 @pytest.fixture()

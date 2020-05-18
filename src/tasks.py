@@ -2,13 +2,15 @@ import logging
 import tempfile
 
 import boto3
+import pandas as pd
 from celery import Celery
 from envparse import env
 from seller_stats.category_stats import CategoryStats
 from seller_stats.formatters import format_currency as fcur
 from seller_stats.formatters import format_number as fnum
 from seller_stats.formatters import format_quantity as fquan
-from seller_stats.loaders import load_scrapinghub, transform_keys
+from seller_stats.loaders import ScrapinghubLoader
+from seller_stats.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
 from telegram import Bot
 
 from .amplitude_helper import AmplitudeLogger
@@ -44,54 +46,18 @@ def get_cat_update_users():
 
 @celery.task()
 def calculate_wb_category_stats(job_id, chat_id):
-    transform_rules = {
-        'wb_category_position': 'position',
-        'wb_price': 'price',
-        'wb_purchases_count': 'purchases',
-        'wb_rating': 'rating',
-        'wb_reviews_count': 'reviews',
-        'wb_id': 'id',
-        'wb_category_url': 'category_url',
-        'wb_category_name': 'category_name',
-        'wb_brand_name': 'brand_name',
-        'wb_brand_country': 'brand_country',
-        'wb_first_review_date': 'first_review',
-        'product_url': 'url',
-        'product_name': 'name',
-    }
-
-    data = load_scrapinghub(job_id)
-    data = transform_keys(data, rules=transform_rules)
-
+    data = ScrapinghubLoader(job_id=job_id, transformer=wb_transformer()).load()
     stats = CategoryStats(data=data)
 
-    stats.calculate_basic_stats()
     stats.calculate_monthly_stats()
 
-    df = stats.df
-
-    message = f"""
-[{stats.category_name()}]({stats.category_url()})
-
-Количество товаров: `{fnum(df.sku.sum())}`
-
-Самый дорогой: {fcur(df.price.max())}
-Самый дешевый: {fcur(df.price.min())}
-Средняя цена: {fcur(df.price.mean())}
-
-Продаж всего: {fquan(df.purchases.sum())} (на {fcur(df.turnover.sum())})
-В среднем продаются по: {fquan(df.purchases.mean())} (на {fcur(df.turnover.mean())})
-Медиана продаж: {fquan(df.purchases.median())} (на {fcur(df.turnover.median())})
-"""
-
+    message = generate_category_stats_message(stats=stats)
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
 
-    temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix='wb_category_', mode='r+b', delete=True)
-    df.to_excel(temp_file.name, index=None, header=True)
-
+    export_file = generate_category_stats_file(stats)
     bot.send_document(
         chat_id=chat_id,
-        document=temp_file,
+        document=export_file,
         filename=f'{stats.category_name()} на Wildberries.xlsx',
     )
 
@@ -159,3 +125,32 @@ def track_amplitude(chat_id: int, event: str, event_properties=None, timestamp=N
             event_properties=event_properties,
             timestamp=timestamp,
         )
+
+
+def generate_category_stats_message(stats):
+    df = stats.df
+
+    return f"""
+[{stats.category_name()}]({stats.category_url()})
+
+Количество товаров: `{fnum(df.sku.sum())}`
+
+Самый дорогой: {fcur(df.price.max())}
+Самый дешевый: {fcur(df.price.min())}
+Средняя цена: {fcur(df.price.mean())}
+
+Продаж всего: {fquan(df.purchases.sum())} (на {fcur(df.turnover.sum())})
+В среднем продаются по: {fquan(df.purchases.mean())} (на {fcur(df.turnover.mean())})
+Медиана продаж: {fquan(df.purchases.median())} (на {fcur(df.turnover.median())})
+"""
+
+
+def generate_category_stats_file(stats):
+    temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix='wb_category_', mode='r+b', delete=True)
+
+    writer = pd.ExcelWriter(temp_file.name)
+    stats.df.to_excel(writer, sheet_name='Товары', index=None, header=True)
+    stats.price_distribution().to_excel(writer, sheet_name='Распределение продаж', index=None, header=True)
+    writer.save()
+
+    return temp_file
