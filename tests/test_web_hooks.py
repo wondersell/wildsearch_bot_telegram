@@ -41,15 +41,6 @@ def test_category_export_finished_hook_correct(mocked_send_message, mocked_calcu
     assert 'ok' in got.text
 
 
-@patch('src.tasks.calculate_wb_category_diff.apply_async')
-def test_category_list_hook(mocked_calculate_diff, web_app):
-    got = web_app.simulate_post('/callback/category_list')
-
-    mocked_calculate_diff.assert_called()
-    assert got.status_code == 200
-    assert 'ok' in got.text
-
-
 @patch('telegram.ext.Dispatcher.process_update')
 @patch('telegram.Update.de_json')
 def test_telegram_webhook(mocked_de_json, mocked_process_update, web_app):

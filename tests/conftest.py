@@ -1,4 +1,5 @@
 import json
+import os
 from unittest.mock import patch
 
 import mongoengine as me
@@ -13,14 +14,9 @@ from src import scrapinghub_helper
 from src.models import User, log_command
 
 
-@pytest.fixture
-def scrapinghub_api_response():
-    def _scrapinghub_api_response(mock):
-        with open(f'tests/mocks/{mock}.json') as f:
-            json_body = f.read()
-            return json.loads(json_body)
-
-    return _scrapinghub_api_response
+@pytest.fixture()
+def current_path():
+    return os.path.dirname(os.path.abspath(__file__))
 
 
 @pytest.fixture
@@ -154,6 +150,7 @@ def requests_mocker():
     perform real requests without being noticed.
     """
     with requests_mock.Mocker() as m:
+        m.post('https://api.amplitude.com/2/httpapi', json={'code': 200})
         yield m
 
 

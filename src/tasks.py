@@ -1,14 +1,21 @@
-import io
 import logging
+import tempfile
 
 import boto3
+import pandas as pd
 from celery import Celery
 from envparse import env
+from seller_stats.category_stats import CategoryStats
+from seller_stats.formatters import format_currency as fcur
+from seller_stats.formatters import format_number as fnum
+from seller_stats.formatters import format_quantity as fquan
+from seller_stats.loaders import ScrapinghubLoader
+from seller_stats.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
 from telegram import Bot
 
 from .amplitude_helper import AmplitudeLogger
 from .models import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
-from .scrapinghub_helper import WbCategoryComparator, WbCategoryStats, wb_category_export
+from .scrapinghub_helper import wb_category_export
 
 env.read_envfile()
 
@@ -38,60 +45,20 @@ def get_cat_update_users():
 
 
 @celery.task()
-def calculate_wb_category_diff():
-    comparator = WbCategoryComparator()
-    comparator.load_from_api()
-    comparator.calculate_diff()
-
-    added_count = comparator.get_categories_count('added')
-    removed_count = comparator.get_categories_count('removed')
-
-    added_unique_count = comparator.get_categories_unique_count('added')
-
-    if added_unique_count == 0:
-        message = 'За последние сутки на Wildberries не добавилось категорий'
-        files = None
-    else:
-        comparator.dump_to_s3_file('added')
-        comparator.dump_to_s3_file('removed')
-        files = [
-            comparator.get_s3_file_name('added'),
-            comparator.get_s3_file_name('removed'),
-        ]
-
-        message = f'Обновились данные по категориям на Wildberries. C последнего  обновления добавилось {added_count} категорий, из них {added_unique_count} уникальных. Скрылось {removed_count} категорий'
-
-    for uid in get_cat_update_users():
-        send_wb_category_update_message.delay(uid, message, files)
-
-
-@celery.task()
 def calculate_wb_category_stats(job_id, chat_id):
-    def format_number(number):
-        return '{:,}'.format(int(number)).replace(',', ' ')
+    data = ScrapinghubLoader(job_id=job_id, transformer=wb_transformer()).load()
+    stats = CategoryStats(data=data)
 
-    stats = WbCategoryStats().fill_from_api(job_id)
+    stats.calculate_monthly_stats()
 
-    message = f"""
-[{stats.get_category_name()}]({stats.get_category_url()})
-
-Количество товаров: `{stats.get_goods_count()}`
-
-Самый дорогой: `{format_number(stats.get_goods_price_max())}` руб.
-Самый дешевый: `{format_number(stats.get_goods_price_min())}` руб.
-Средняя цена: `{format_number(stats.get_goods_price_mean())}` руб.
-
-Продаж всего: `{format_number(stats.get_sales_count())}` шт. (на `{format_number(stats.get_sales_sum())}` руб.)
-В среднем продаются по: `{format_number(stats.get_sales_mean_count())}` шт. (на `{format_number(stats.get_sales_mean())}` руб.)
-Медиана продаж: `{format_number(stats.get_sales_median_count())}` шт. (на `{format_number(stats.get_sales_median())}` руб.)
-"""
-
+    message = generate_category_stats_message(stats=stats)
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
 
+    export_file = generate_category_stats_file(stats)
     bot.send_document(
         chat_id=chat_id,
-        document=stats.get_category_excel(),
-        filename=f'{stats.get_category_name()} на Wildberries.xlsx',
+        document=export_file,
+        filename=f'{stats.category_name()} на Wildberries.xlsx',
     )
 
     send_category_requests_count_message.delay(chat_id)
@@ -107,28 +74,12 @@ def schedule_wb_category_export(category_url: str, chat_id: int, log_id):
         message = '⏳ Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут.'
         check_requests_count_recovered.apply_async((), {'chat_id': chat_id}, countdown=24 * 60 * 60 + 60)
         log_item.set_status('success')
-    except Exception as e:
-        message = f'{e} Извините, мы сейчас не можем обработать ваш запрос – у нас образовалась слишком большая очередь на анализ категорий. Пожалуйста, подождите немного и отправьте запрос снова.'
+    except Exception:
+        message = 'Извините, мы сейчас не можем обработать ваш запрос – у нас образовалась слишком большая очередь на анализ категорий. Пожалуйста, подождите немного и отправьте запрос снова.'
         track_amplitude.delay(chat_id=chat_id, event='Received "Too long queue" error')
         pass
 
     bot.send_message(chat_id=chat_id, text=message)
-
-
-@celery.task()
-def send_wb_category_update_message(chat_id: int, message: str, files=None):
-    if files is None:
-        files = []
-
-    bot.send_message(chat_id=chat_id, text=message)
-
-    for file_name in files:
-        memory_file = io.BytesIO()
-        s3.download_fileobj(env('AWS_S3_BUCKET_NAME'), file_name, memory_file)
-        memory_file.seek(0, 0)
-        bot.send_document(chat_id=chat_id, document=memory_file, filename=file_name)
-
-    track_amplitude.delay(chat_id=chat_id, event='Received daily WB categories changes')
 
 
 @celery.task()
@@ -174,3 +125,32 @@ def track_amplitude(chat_id: int, event: str, event_properties=None, timestamp=N
             event_properties=event_properties,
             timestamp=timestamp,
         )
+
+
+def generate_category_stats_message(stats):
+    df = stats.df
+
+    return f"""
+[{stats.category_name()}]({stats.category_url()})
+
+Количество товаров: `{fnum(df.sku.sum())}`
+
+Самый дорогой: {fcur(df.price.max())}
+Самый дешевый: {fcur(df.price.min())}
+Средняя цена: {fcur(df.price.mean())}
+
+Продаж всего: {fquan(df.purchases.sum())} (на {fcur(df.turnover.sum())})
+В среднем продаются по: {fquan(df.purchases.mean())} (на {fcur(df.turnover.mean())})
+Медиана продаж: {fquan(df.purchases.median())} (на {fcur(df.turnover.median())})
+"""
+
+
+def generate_category_stats_file(stats):
+    temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix='wb_category_', mode='r+b', delete=True)
+
+    writer = pd.ExcelWriter(temp_file.name)
+    stats.df.to_excel(writer, sheet_name='Товары', index=None, header=True)
+    stats.price_distribution().to_excel(writer, sheet_name='Распределение продаж', index=None, header=True)
+    writer.save()
+
+    return temp_file
