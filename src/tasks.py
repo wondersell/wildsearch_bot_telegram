@@ -31,10 +31,6 @@ celery.conf.update(
 # включаем логи
 logger = logging.getLogger(__name__)
 
-# включаем Amplitude
-if env('AMPLITUDE_API_KEY', default=None) is not None:
-    amplitude = AmplitudeLogger(env('AMPLITUDE_API_KEY'))
-
 bot = Bot(env('TELEGRAM_API_TOKEN'))
 s3 = boto3.client('s3')
 
@@ -110,7 +106,8 @@ def check_requests_count_recovered(chat_id: int):
 
 @celery.task()
 def track_amplitude(chat_id: int, event: str, event_properties=None, timestamp=None):
-    if amplitude:
+    if env('AMPLITUDE_API_KEY', default=None) is not None:
+        amplitude = AmplitudeLogger(env('AMPLITUDE_API_KEY'))
         user = user_get_by(chat_id=chat_id)
         amplitude.log(
             user_id=chat_id,
