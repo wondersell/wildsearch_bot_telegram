@@ -12,8 +12,8 @@ s3 = boto3.client('s3')
 
 def init_scrapinghub():
     logger.info('Initializing scrapinghub')
-    client = ScrapinghubClient(env('SCRAPINGHUB_API_KEY'))
-    project = client.get_project(env('SCRAPINGHUB_PROJECT_ID'))
+    client = ScrapinghubClient(env('SH_APIKEY'))
+    project = client.get_project(env('SH_PROJECT_ID'))
 
     return client, project
 
