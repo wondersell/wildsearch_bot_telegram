@@ -10,12 +10,10 @@ from seller_stats.formatters import format_currency as fcur
 from seller_stats.formatters import format_number as fnum
 from seller_stats.formatters import format_quantity as fquan
 from seller_stats.loaders import ScrapinghubLoader
-from seller_stats.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
 from telegram import Bot
 
-from .amplitude_helper import AmplitudeLogger
+from .helpers import AmplitudeLogger, category_export, detect_mp_by_job_id
 from .models import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
-from .scrapinghub_helper import wb_category_export
 
 env.read_envfile()
 
@@ -41,8 +39,10 @@ def get_cat_update_users():
 
 
 @celery.task()
-def calculate_wb_category_stats(job_id, chat_id):
-    data = ScrapinghubLoader(job_id=job_id, transformer=wb_transformer()).load()
+def calculate_category_stats(job_id, chat_id):
+    slug, marketplace, transformer = detect_mp_by_job_id(job_id=job_id)
+
+    data = ScrapinghubLoader(job_id=job_id, transformer=transformer).load()
     stats = CategoryStats(data=data)
 
     stats.calculate_monthly_stats()
@@ -54,19 +54,19 @@ def calculate_wb_category_stats(job_id, chat_id):
     bot.send_document(
         chat_id=chat_id,
         document=export_file,
-        filename=f'{stats.category_name()} на Wildberries.xlsx',
+        filename=f'{stats.category_name()} на {marketplace}.xlsx',
     )
 
     send_category_requests_count_message.delay(chat_id)
-    track_amplitude.delay(chat_id=chat_id, event='Received WB category analyses')
+    track_amplitude.delay(chat_id=chat_id, event=f'Received {slug} category analyses')
 
 
 @celery.task()
-def schedule_wb_category_export(category_url: str, chat_id: int, log_id):
+def schedule_category_export(category_url: str, chat_id: int, log_id):
     log_item = LogCommandItem.objects(id=log_id).first()
 
     try:
-        wb_category_export(category_url, chat_id)
+        category_export(category_url, chat_id)
         message = '⏳ Мы обрабатываем ваш запрос. Когда все будет готово, вы получите результат.\n\nБольшие категории (свыше 1 тыс. товаров) могут обрабатываться до одного часа.\n\nМаленькие категории обрабатываются в течение нескольких минут.'
         check_requests_count_recovered.apply_async((), {'chat_id': chat_id}, countdown=24 * 60 * 60 + 60)
         log_item.set_status('success')

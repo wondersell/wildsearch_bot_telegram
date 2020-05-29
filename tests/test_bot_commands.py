@@ -10,7 +10,7 @@ from envparse import env
     ['https://www.wildberries.ru/catalog/0/search.aspx?subject=99&search=сапоги&sort=popular'],
     ['https://www.wildberries.ru/promotions/eeh-mix-uhod-i-parfyumeriya'],
 ])
-@patch('src.tasks.schedule_wb_category_export.apply_async')
+@patch('src.tasks.schedule_category_export.apply_async')
 def test_command_catalog(mocked_celery_delay, web_app, telegram_json_message, message):
     telegram_json = telegram_json_message(message=str(message))
 
@@ -19,9 +19,9 @@ def test_command_catalog(mocked_celery_delay, web_app, telegram_json_message, me
     mocked_celery_delay.assert_called()
 
 
-@patch('src.tasks.schedule_wb_category_export.apply_async')
+@patch('src.tasks.schedule_category_export.apply_async')
 @patch('telegram.Bot.send_message')
-def test_command_catalog_throttled(mocked_bot_send_message, mocked_celery_delay, web_app, telegram_json_message, create_telegram_command_logs):
+def test_command_catalog_throttled_wb(mocked_bot_send_message, mocked_celery_delay, web_app, telegram_json_message, create_telegram_command_logs):
     create_telegram_command_logs(5, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/kantstovary/tochilki')
     telegram_json = telegram_json_message(message='https://www.wildberries.ru/catalog/dom-i-dacha/tovary-dlya-remonta/instrumenty/magnitnye-instrumenty')
 
