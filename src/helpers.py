@@ -55,7 +55,7 @@ def detect_mp_by_job_id(job_id):
     if spider == env('SH_OZON_SPIDER'):
         return 'Ozon', 'Ozon', ozon_transformer()
 
-    return None, None
+    return None, None, None
 
 
 def init_scrapinghub():

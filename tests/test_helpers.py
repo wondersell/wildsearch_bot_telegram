@@ -67,10 +67,15 @@ def test_aplitude_logger_pass_timestamp(mocked_amplitude):
     ['414324/2/19', ('Ozon', 'Ozon', ozon_transformer)],
     ['414324/2/1', ('Ozon', 'Ozon', ozon_transformer)],
     ['414324/2/735', ('Ozon', 'Ozon', ozon_transformer)],
+    ['123123/4345/32', (None, None, None)],
 ])
 def test_detect_mp_by_job_id(job_id, expected):
     slug, marketplace, transformer = detect_mp_by_job_id(job_id)
 
     assert slug == expected[0]
     assert marketplace == expected[1]
-    assert isinstance(transformer, expected[2])
+
+    if expected[2] is not None:
+        assert isinstance(transformer, expected[2])
+    else:
+        assert expected[2] is None
