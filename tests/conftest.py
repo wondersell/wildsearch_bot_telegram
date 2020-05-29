@@ -11,7 +11,7 @@ from envparse import env
 from falcon import testing
 from telegram import Bot, Update
 
-from src import scrapinghub_helper
+from src import helpers
 from src.models import User, log_command
 
 
@@ -133,7 +133,7 @@ def web_app():
 
 @pytest.fixture(autouse=True)
 def s3_stub():
-    with Stubber(scrapinghub_helper.s3) as stubber:
+    with Stubber(helpers.s3) as stubber:
         yield stubber
         stubber.assert_no_pending_responses()
 

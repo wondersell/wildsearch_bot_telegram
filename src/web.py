@@ -19,7 +19,7 @@ class CallbackWbCategoryExportResource(object):
                 text='🤘 Выгрузка данных по категории готова.\n🧠 Приступаю к анализу. Минутку...',
             )
 
-            tasks.calculate_wb_category_stats.apply_async(
+            tasks.calculate_category_stats.apply_async(
                 (),
                 {
                     'job_id': req.get_param('job_id'),

@@ -136,7 +136,7 @@ def wb_catalog(update: Update, context: CallbackContext):
         process_event(user=user, event='Received "Out of requests" error')
 
     else:
-        tasks.schedule_wb_category_export.delay(update.message.text, update.message.chat_id, log_item.id)
+        tasks.schedule_category_export.delay(update.message.text, update.message.chat_id, log_item.id)
         process_event(user=user, event='Started WB catalog export')
 
 
@@ -161,6 +161,7 @@ def start_bot(bot):
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/brands/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/promotions/'), wb_catalog))
+
     dp.add_handler(MessageHandler(Filters.all, help_command_not_found))
 
     return dp

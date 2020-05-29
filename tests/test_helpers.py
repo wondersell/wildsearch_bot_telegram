@@ -2,8 +2,10 @@ from json import loads
 
 import pytest
 import requests_mock
+from seller_stats.transformers import WildsearchCrawlerOzonTransformer as ozon_transformer
+from seller_stats.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
 
-from src.amplitude_helper import AmplitudeLogger
+from src.helpers import AmplitudeLogger, detect_mp_by_job_id
 
 
 @pytest.fixture()
@@ -56,3 +58,24 @@ def test_aplitude_logger_pass_timestamp(mocked_amplitude):
 
         mocked_json = loads(m.request_history[0].text)
         assert mocked_json['events'][0]['time'] == '12345678'
+
+
+@pytest.mark.parametrize('job_id, expected', [
+    ['414324/1/818', ('WB', 'Wildberries', wb_transformer)],
+    ['414324/1/95', ('WB', 'Wildberries', wb_transformer)],
+    ['414324/1/6', ('WB', 'Wildberries', wb_transformer)],
+    ['414324/2/19', ('Ozon', 'Ozon', ozon_transformer)],
+    ['414324/2/1', ('Ozon', 'Ozon', ozon_transformer)],
+    ['414324/2/735', ('Ozon', 'Ozon', ozon_transformer)],
+    ['123123/4345/32', (None, None, None)],
+])
+def test_detect_mp_by_job_id(job_id, expected):
+    slug, marketplace, transformer = detect_mp_by_job_id(job_id)
+
+    assert slug == expected[0]
+    assert marketplace == expected[1]
+
+    if expected[2] is not None:
+        assert isinstance(transformer, expected[2])
+    else:
+        assert expected[2] is None
