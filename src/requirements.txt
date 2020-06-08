@@ -16,7 +16,7 @@ json_log_formatter==0.3.0
 celery==4.4.2
 flower==0.9.4
 mongoengine==0.20.0
-redis==3.5.2
+redis==3.5.3
 boto3==1.13.16
 
 pytest==5.4.2
