@@ -1,6 +1,6 @@
 python-telegram-bot==12.7
 falcon==2.0.0
-seller-stats==0.0.4
+seller-stats==0.1.0
 
 
 scrapinghub==2.3.1
