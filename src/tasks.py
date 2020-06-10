@@ -5,11 +5,11 @@ import boto3
 import pandas as pd
 from celery import Celery
 from envparse import env
-from seller_stats.category_stats import CategoryStats
-from seller_stats.formatters import format_currency as fcur
-from seller_stats.formatters import format_number as fnum
-from seller_stats.formatters import format_quantity as fquan
-from seller_stats.loaders import ScrapinghubLoader
+from seller_stats.category_stats import CategoryStats, calc_sales_distribution
+from seller_stats.utils.formatters import format_currency as fcur
+from seller_stats.utils.formatters import format_number as fnum
+from seller_stats.utils.formatters import format_quantity as fquan
+from seller_stats.utils.loaders import ScrapinghubLoader
 from telegram import Bot
 
 from .helpers import AmplitudeLogger, category_export, detect_mp_by_job_id
@@ -44,8 +44,6 @@ def calculate_category_stats(job_id, chat_id):
 
     data = ScrapinghubLoader(job_id=job_id, transformer=transformer).load()
     stats = CategoryStats(data=data)
-
-    stats.calculate_monthly_stats()
 
     message = generate_category_stats_message(stats=stats)
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
@@ -147,7 +145,9 @@ def generate_category_stats_file(stats):
 
     writer = pd.ExcelWriter(temp_file.name)
     stats.df.to_excel(writer, sheet_name='Товары', index=None, header=True)
-    stats.price_distribution().to_excel(writer, sheet_name='Распределение продаж', index=None, header=True)
+
+    distributions = calc_sales_distribution(stats)
+    distributions.df.to_excel(writer, sheet_name='Распределение продаж', index=None, header=True)
     writer.save()
 
     return temp_file
