@@ -2,10 +2,10 @@ from json import loads
 
 import pytest
 import requests_mock
-from seller_stats.transformers import WildsearchCrawlerOzonTransformer as ozon_transformer
-from seller_stats.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
+from seller_stats.utils.transformers import WildsearchCrawlerOzonTransformer as ozon_transformer
+from seller_stats.utils.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
 
-from src.helpers import AmplitudeLogger, detect_mp_by_job_id
+from src.helpers import AmplitudeLogger, detect_mp_by_job_id, smart_format_number
 
 
 @pytest.fixture()
@@ -79,3 +79,30 @@ def test_detect_mp_by_job_id(job_id, expected):
         assert isinstance(transformer, expected[2])
     else:
         assert expected[2] is None
+
+
+@pytest.mark.parametrize('test_number, expected', [
+    [5, ('5', '')],
+    [82, ('80', '')],
+    [133, ('130', '')],
+    [1432, ('1 400', '')],
+    [5899, ('5 900', '')],
+    [45037, ('45', 'тыс.')],
+    [79637, ('80', 'тыс.')],
+    [498177, ('498', 'тыс.')],
+    [1387400, ('1,4', 'млн.')],
+    [58787306, ('58,8', 'млн.')],
+    [679347200, ('679', 'млн.')],
+    [3438209796, ('3,4', 'млрд.')],
+    [56084768109, ('56,1', 'млрд.')],
+    [156084768109, ('156', 'млрд.')],
+    [6471309583998, ['6,5', 'трлн.']],
+    [22489066284578, ['22,5', 'трлн.']],
+    [982578123334900, ['983', 'трлн.']],
+    [3985300123427720, ['3 985 300 123 427 720', '']],
+])
+def test_smart_format_number(test_number, expected):
+    number, digits = smart_format_number(test_number)
+
+    assert number == expected[0]
+    assert digits == expected[1]

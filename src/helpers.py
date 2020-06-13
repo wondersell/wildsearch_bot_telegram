@@ -6,8 +6,8 @@ import boto3
 import requests
 from envparse import env
 from scrapinghub import ScrapinghubClient
-from seller_stats.transformers import WildsearchCrawlerOzonTransformer as ozon_transformer
-from seller_stats.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
+from seller_stats.utils.transformers import WildsearchCrawlerOzonTransformer as ozon_transformer
+from seller_stats.utils.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
 
 logger = logging.getLogger(__name__)
 
@@ -87,3 +87,66 @@ def category_export(url, chat_id, spider='wb') -> str:
 
     logger.info(f'Export for category {url} will have job key {job.key}')
     return 'https://app.scrapinghub.com/p/' + job.key
+
+
+def smart_format_number(number):
+    # 177 шт.
+    # 2 112
+    # 4 200 шт.
+    # 4 500 шт.
+    # 6 800 шт.
+    # 10 650 руб.
+    # 15 тыс. шт.
+    # 53 тыс
+    # 1,3 млн. руб.
+    # 1,9 млн. руб.
+    # 6,8 млн.руб.
+    # 22 млн. руб.
+    # 41,7 млн. руб.
+
+    # 892 977 678 236 940
+    try:
+        digits = len(str(abs(int(number))))
+    except ValueError:
+        return '–', ''
+
+    text_digits = ''
+
+    if 1 < digits <= 3:
+        number = round(number / 10) * 10
+
+    if 3 < digits <= 4:
+        number = round(number / 100) * 100
+
+    if 4 < digits <= 6:
+        number = round(number / 1000)
+        text_digits = 'тыс.'
+
+    if 6 < digits <= 8:
+        number = round(number / 1000000, 1)
+        text_digits = 'млн.'
+
+    if 8 < digits <= 9:
+        number = round(number / 1000000)
+        text_digits = 'млн.'
+
+    if 9 < digits <= 11:
+        number = round(number / 1000000000, 1)
+        text_digits = 'млрд.'
+
+    if 11 < digits <= 12:
+        number = round(number / 1000000000)
+        text_digits = 'млрд.'
+
+    if 12 < digits <= 14:
+        number = round(number / 1000000000000, 1)
+        text_digits = 'трлн.'
+
+    if 14 < digits <= 15:
+        number = round(number / 1000000000000)
+        text_digits = 'трлн.'
+
+    number = int(number) if float(round(number, 2)) % 1 == 0 else round(float(number), 2)
+    number = '{:,}'.format(number).replace(',', ' ').replace('.', ',')
+
+    return number, text_digits
