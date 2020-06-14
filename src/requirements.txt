@@ -2,7 +2,6 @@ python-telegram-bot==12.7
 falcon==2.0.0
 seller-stats==0.1.1
 
-
 scrapinghub==2.3.1
 sentry-sdk==0.14.4
 
@@ -20,6 +19,7 @@ mongoengine==0.20.0
 redis==3.5.3
 boto3==1.13.16
 Jinja2==2.11.2
+WeasyPrint
 
 pytest==5.4.3
 pytest-cov==2.9.0
