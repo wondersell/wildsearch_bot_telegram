@@ -81,7 +81,7 @@ def category_export(url, chat_id, spider='wb') -> str:
 
     job = project.jobs.run(spider, job_args={
         'category_url': url,
-        'callback_url': env('WILDSEARCH_JOB_FINISHED_CALLBACK') + '/category_export',
+        'callback_url': env('WILDSEARCH_JOB_FINISHED_CALLBACK') + f'/{spider}_category_export',
         'callback_params': f'chat_id={chat_id}',
     })
 

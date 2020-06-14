@@ -1,6 +1,6 @@
+import datetime
 import inspect
 import logging
-import datetime
 
 import numpy as np
 import pandas as pd
@@ -101,7 +101,7 @@ class PopularBrandsItem(BaseViewModel):
 
     @property
     def logo(self):
-        return self._logo
+        return self._logo.replace('//', 'http://')
 
     @property
     def goods(self):
@@ -190,7 +190,7 @@ class Item(BaseViewModel):
 
     @property
     def logo(self):
-        return self._images[0]
+        return self._images[0].replace('//', 'http://')
 
     @property
     def name(self):
@@ -308,7 +308,7 @@ class Report(BaseViewModel):
 
     @property
     def base_monopoly_index(self):
-        monopoly = round(5 * calc_hhi(self.stats, by="brand_name") / 10000)  # максимум – 10 000
+        monopoly = round(5 * calc_hhi(self.stats, by='brand_name') / 10000)  # максимум – 10 000
         return Indicator(number=monopoly, units=None, label=None).to_dict()
 
     @property
@@ -349,7 +349,7 @@ class Report(BaseViewModel):
         sales_distribution_df['share'] = sales_distribution_df.sku / len(self.stats.df.index)
         sales_distribution_df = sales_distribution_df.reset_index()
 
-        logger.info(f'Sales distributions calculated')
+        logger.info('Sales distributions calculated')
 
         return SalesDistribution(sales_distribution_df).to_dict()
 
@@ -390,12 +390,9 @@ class Report(BaseViewModel):
 
     @property
     def goods_overview(self):
-        worst_df = self.stats.df.loc[:, self.items_field_list]
-        worst_df = worst_df[worst_df.rating == 1]
-
         return {
             'expensive': Item(self.stats.df.loc[:, self.items_field_list].sort_values(by='price', ascending=False).head(1).to_dict('records')[0]).to_dict(),
             'cheap': Item(self.stats.df.loc[:, self.items_field_list].sort_values(by='price', ascending=True).head(1).to_dict('records')[0]).to_dict(),
             'old': Item(self.stats.df.loc[:, self.items_field_list].sort_values(by='first_review', ascending=True).head(1).to_dict('records')[0]).to_dict(),
-            'bad': Item(worst_df.head(1).to_dict('records')[0]).to_dict(),
+            'bad': Item(self.stats.df[self.stats.df.rating > 0].loc[:, self.items_field_list].sort_values(by='rating', ascending=True).head(1).to_dict('records')[0]).to_dict(),
         }
