@@ -6,8 +6,8 @@ import boto3
 import requests
 from envparse import env
 from scrapinghub import ScrapinghubClient
-from seller_stats.transformers import WildsearchCrawlerOzonTransformer as ozon_transformer
-from seller_stats.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
+from seller_stats.utils.transformers import WildsearchCrawlerOzonTransformer as ozon_transformer
+from seller_stats.utils.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
 
 logger = logging.getLogger(__name__)
 
