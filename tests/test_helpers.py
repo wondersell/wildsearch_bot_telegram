@@ -2,8 +2,8 @@ from json import loads
 
 import pytest
 import requests_mock
-from seller_stats.transformers import WildsearchCrawlerOzonTransformer as ozon_transformer
-from seller_stats.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
+from seller_stats.utils.transformers import WildsearchCrawlerOzonTransformer as ozon_transformer
+from seller_stats.utils.transformers import WildsearchCrawlerWildberriesTransformer as wb_transformer
 
 from src.helpers import AmplitudeLogger, detect_mp_by_job_id
 
