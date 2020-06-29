@@ -174,16 +174,17 @@ def generate_category_stats_report_file(stats):
 
     start_time = time.time()
 
+    base_path = os.path.dirname(os.path.abspath(__file__)) + '/templates/pdf/report/'
     environment = Environment(
-        loader=FileSystemLoader(os.path.dirname(os.path.abspath(__file__)) + '/templates/'),
+        loader=FileSystemLoader(base_path),
         autoescape=select_autoescape(['html', 'xml']),
     )
-    template = environment.get_template('pdf/report.j2')
+    template = environment.get_template('_index.j2')
 
     temp_file = tempfile.NamedTemporaryFile(suffix='.pdf', prefix='wb_category_', mode='w+b', delete=False)
     report_vm = Report(stats=stats)
 
-    HTML(string=template.render(report_vm.to_dict())).write_pdf(target=temp_file.name)
+    HTML(string=template.render(report_vm.to_dict()), base_url=f'{base_path}').write_pdf(target=temp_file.name)
 
     logger.info(f'PDF report generated in {time.time() - start_time}s, {os.path.getsize(temp_file.name)} bytes')
 

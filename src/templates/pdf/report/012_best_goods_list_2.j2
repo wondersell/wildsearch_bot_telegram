@@ -1,0 +1,41 @@
+<div class="page">
+    <div class="container">
+        <h2>Лучшие по обороту за все время (в рублях)</h2>
+
+        <table class="table-data table-medals">
+            <thead>
+                <tr>
+                    <td class="skip-border"></td>
+                    <td class="skip-border"></td>
+                    <td></td>
+                    <td class="skip-border">Всего продаж</td>
+                    <td></td>
+                    <td class="skip-border">Продаж в мес.</td>
+                    <td></td>
+                    <td>Первый отзыв</td>
+                    <td>Рейтинг</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in best_sold_overall %}
+                <tr>
+                    <td class="skip-border"><img src="images/t{{ loop.index }}.png" border="0" alt="{{ loop.index }}" class="table-data-medal"></td>
+                    <td class="skip-border"><a href="{{ item.url }}"><img border="0"  src="{{ item.logo }}" border="0" alt title></a></td>
+                    <td>
+                        <div class="table-data-item-name"><a href="{{ item.url }}">{{ item.name }}</a></div>
+                        <div class="table-data-item-price">Цена:  {{ item.price.number }} {{ item.price.units }}</div>
+                    </td>
+                    <td class="table-parameter skip-border"><div class="table-parameter-value">{{ item.purchases.number }} <span>{{ item.purchases.digits }} {{ item.purchases.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ item.turnover.number }} <span>{{ item.turnover.digits }} {{ item.turnover.units }}</span></div></td>
+                    <td class="table-parameter skip-border"><div class="table-parameter-value">{{ item.purchases_month.number }} <span>{{ item.purchases_month.digits }} {{ item.purchases_month.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ item.turnover_month.number }} <span>{{ item.turnover_month.digits }} {{ item.turnover_month.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ item.first_review_date }}</div></td>
+                    <td class="table-parameter"><div class="table-parameter-value"><img border="0"  src="images/star2.png" class="star"> {{ item.average_rating }}</div></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% include 'blocks/copyright.j2' %}
+    </div>
+</div>
