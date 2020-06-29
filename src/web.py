@@ -49,6 +49,26 @@ class CallbackIndex(object):
         resp.body = json.dumps({'status': 'lucky_you'})
 
 
+class CallbackTest(object):
+    def on_get(self, req, resp):
+        from seller_stats.utils.loaders import ScrapinghubLoader
+        from seller_stats.utils.transformers import WildsearchCrawlerWildberriesTransformer as WbTransformer
+        from seller_stats.category_stats import CategoryStats
+        from .tasks import generate_category_stats_report_file
+
+        transformer = WbTransformer()
+        data = ScrapinghubLoader(job_id='414324/1/937', transformer=transformer).load()
+        stats = CategoryStats(data=data)
+
+        export_file = generate_category_stats_report_file(stats)
+
+        resp.downloadable_as = export_file.name
+        resp.content_type = 'application/pdf'
+
+        resp.stream = export_file
+        resp.status = falcon.HTTP_200
+
+
 bot = Bot(env('TELEGRAM_API_TOKEN'))
 reset_webhook(bot, env('WILDSEARCH_WEBHOOKS_DOMAIN'), env('TELEGRAM_API_TOKEN'))
 bot_dispatcher = start_bot(bot)
@@ -58,4 +78,7 @@ app.req_options.auto_parse_form_urlencoded = True
 
 app.add_route('/callback/wb_category_export', CallbackWbCategoryExportResource())
 app.add_route('/' + env('TELEGRAM_API_TOKEN'), CallbackTelegramWebhook())
+
+app.add_route('/test', CallbackTest())
+
 app.add_route('/', CallbackIndex())
