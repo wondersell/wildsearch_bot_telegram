@@ -27,12 +27,20 @@ class BaseListViewModel(object):
 
 
 class Indicator(BaseViewModel):
-    def __init__(self, number, units=None, label=None, precision=None):
+    def __init__(self, number, units=None, label=None, precise=False):
+        self._number_raw = number
         self._units = units
         self._label = label
-        self._precision = precision
+        self._precise = precise
 
-        self._number, self._text_digits = smart_format_number(number)
+        if precise is False:
+            self._number, self._text_digits = smart_format_number(number)
+        else:
+            self._number, self._text_digits = number, ''
+
+    @property
+    def number_raw(self):
+        return self._number_raw
 
     @property
     def number(self):
@@ -161,6 +169,10 @@ class RatingDistributionItem(BaseViewModel):
     def ratio(self):
         return format_percent(round(self._ratio, 2))
 
+    @property
+    def images(self):
+        return image_bag(number=self._rating, image_pale='star3', image_bright='star2') if self._rating > 0 else []
+
 
 class RatingDistributionList(BaseListViewModel):
     def __init__(self, distributions):
@@ -198,8 +210,7 @@ class Item(BaseViewModel):
 
     @property
     def price(self):
-        price = int(self._price) if float(round(self._price, 2)) % 1 == 0 else round(float(self._price), 2)
-        return '{:,}'.format(price).replace(',', ' ').replace('.', ',')
+        return Indicator(number=self._price, units='руб.', precise=True)
 
     @property
     def purchases(self):
@@ -250,6 +261,47 @@ class ItemsList(BaseListViewModel):
         for item in df.to_dict('records'):
             self.items.append(Item(item))
 
+'''
+	bin	        sku	    turnover_month	    purchases_month
+0	0-250	    836	    4532545.77	        21861.17
+1	250-500	    5173	27703352.05	        74919.29
+2	500-750	    3410	20352363.91	        34097.00
+3	750-1000	1808	12764585.67	        15119.54
+4	1000-1250	807	    4339296.15	        3954.55
+5	>1250	    1450	4796004.02	        2849.81
+'''
+
+'''
+bin         value
+0-250       4532545.77
+250-500     27703352.05
+500-750     20352363.91
+750-1000    12764585.67
+1000-1250   4339296.15
+>1250       4796004.02
+'''
+class BarChart(BaseViewModel):
+    def __init__(self, df, x_axis, y_axis):
+        super().__init__()
+        self._df = df
+        self._x_axis = x_axis
+        self._y_axis = y_axis
+
+    @property
+    def x_axis_name(self):
+        return self._x_axis
+
+    @property
+    def y_axis_name(self):
+        return self._y_axis
+
+    @property
+    def bars(self):
+        return []
+
+    @property
+    def rows(self):
+        return []
 
 class Report(BaseViewModel):
     items_field_list = [
@@ -312,9 +364,17 @@ class Report(BaseViewModel):
         return Indicator(number=monopoly, units=None, label=None).to_dict()
 
     @property
+    def base_monopoly_index_images(self):
+        return image_bag(number=self.base_monopoly_index['number_raw'], image_pale='m1', image_bright='m1a')
+
+    @property
     def base_trash_index(self):
         trash_index = round(5 * len(self.stats.df[self.stats.df.purchases < 1].index) / len(self.stats.df.index))
         return Indicator(number=trash_index, units=None, label=None).to_dict()
+
+    @property
+    def base_trash_index_images(self):
+        return image_bag(number=self.base_trash_index['number_raw'], image_pale='m2', image_bright='m2a')
 
     @property
     def base_first_sales(self):
@@ -352,6 +412,22 @@ class Report(BaseViewModel):
         logger.info('Sales distributions calculated')
 
         return SalesDistribution(sales_distribution_df).to_dict()
+
+    @property
+    def sales_distribution_skus_chart(self):
+        return None
+
+    @property
+    def sales_distribution_turnover_chart(self):
+        return None
+
+    @property
+    def brand_countries_chart(self):
+        return None
+
+    @property
+    def production_countries_chart(self):
+        return None
 
     @property
     def popular_brands(self):
@@ -396,3 +472,18 @@ class Report(BaseViewModel):
             'old': Item(self.stats.df.loc[:, self.items_field_list].sort_values(by='first_review', ascending=True).head(1).to_dict('records')[0]).to_dict(),
             'bad': Item(self.stats.df[self.stats.df.rating > 0].loc[:, self.items_field_list].sort_values(by='rating', ascending=True).head(1).to_dict('records')[0]).to_dict(),
         }
+
+
+def image_bag(number, image_pale, image_bright, maximum=5):
+    images = []
+
+    full_images = int(number)
+    empty_images = maximum - full_images  # У нас пятибальная шкала
+
+    for i in range(1, full_images + 1):
+        images.append(image_bright)
+
+    for i in range(1, empty_images + 1):
+        images.append(image_pale)
+
+    return images
