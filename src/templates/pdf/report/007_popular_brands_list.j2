@@ -17,7 +17,7 @@
             <tbody>
                 {% for brand in popular_brands %}
                 <tr>
-                    <td class="skip-border"><img src="images/t{{ loop.index }}.png" alt="{{ loop.index }}" class="table-data-medal"></td>
+                    <td class="skip-border table-data-medal"><img src="images/t{{ loop.index }}.png" alt="{{ loop.index }}" class="table-data-medal"></td>
                     <td class="skip-border"><a href="{{ brand.url }}"><img border="0"  src="{{ brand.logo }}" border="0" alt title></a></td>
                     <td><a href="{{ brand.url }}">{{ brand.name }}</a></td>
                     <td class="table-parameter"><div class="table-parameter-value">{{ brand.goods.number }} <span>{{ brand.goods.digits }} {{ brand.goods.units }}</span></div></td>
@@ -28,7 +28,8 @@
                 {% endfor %}
             </tbody>
         </table>
-
+    </div>
+    <div class="left-footer">
         {% include 'blocks/copyright.j2' %}
     </div>
 </div>

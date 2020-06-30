@@ -91,7 +91,7 @@ h1 {
 }
 
 h2 {
-    font-size: 23pt;
+    font-size: 25pt;
     font-weight: 300;
 }
 
@@ -120,21 +120,24 @@ p {
 }
 
 .generated-by .primary {
-    font-size: 10pt;
+    font-size: 11pt;
+    font-weight: 300;
+    line-height: 1.5em;
 }
 
 .generated-by .secondary {
     font-size: 8pt;
+    font-weight: 300;
 }
 
 .copyright .text{
-    font-size: 6pt;
+    font-size: 7pt;
     font-weight: 300;
-    line-height: 2em;
+    line-height: 1.7em;
 }
 
 .main-parameter-value {
-    font-size: 28pt;
+    font-size: 32pt;
     font-weight: 100;
 }
 
@@ -144,7 +147,7 @@ p {
 }
 
 .main-parameter-label {
-    font-size: 9pt;
+    font-size: 10pt;
     font-weight: 100;
     line-height: 1.5em;
 }
@@ -155,13 +158,21 @@ p {
 }
 
 .main-parameter-description {
-    font-size: 7pt;
+    font-size: 8pt;
     font-weight: 100;
     line-height: 1.5em;
 }
 
+.callout-box p {
+    font-size: 9pt;
+}
+
+.longread p {
+    font-size: 9pt;
+}
+
 .distribution-table {
-    font-size: 20pt;
+    font-size: 23pt;
     font-weight: 100;
 }
 
@@ -232,18 +243,19 @@ p {
 }
 
 .chart .col-label {
-    font-size: 7pt;
+    font-size: 8pt;
     font-weight: 300;
 }
 
 .chart .col-label span {
-    font-size: 5pt;
+    font-size: 7pt;
     font-weight: 300;
 }
 
 .chart .bar .value {
     font-size: 8pt;
     font-weight: 300;
+    background: rgba(255,255,255,1);
 }
 
 /* Цвета */
@@ -288,7 +300,7 @@ body {
 .page-background {
     position: absolute;
     display: block;
-    width: 70%;
+    width: 65%;
     top: 0;
     right: 0;
     z-index: -1;
@@ -326,7 +338,7 @@ h1 img, h2 img, h3 img, h4 img {
 
 .main-logo {
     display: block;
-    width: 30em;
+    width: 26em;
     margin-top: 3em;
     margin-bottom: 5em;
 }
@@ -347,7 +359,7 @@ h1 img, h2 img, h3 img, h4 img {
     display: block;
     float: left;
     margin-right: 2em;
-    height: 8em;
+    height: 9em;
 }
 
 .generated-by .text {
@@ -356,6 +368,16 @@ h1 img, h2 img, h3 img, h4 img {
 
 .generated-by .primary {
     margin-bottom: .8em;
+}
+
+.left-footer .copyright {
+    position: absolute;
+    top: 16cm;
+    width: 50em;
+}
+
+.right-footer .copyright {
+
 }
 
 .copyright {
@@ -369,11 +391,12 @@ h1 img, h2 img, h3 img, h4 img {
 
 .copyright .logo {
     float: left;
-    padding-right: 2em;
+    padding-right: 1em;
+    padding-top: 0.9em;
 }
 
 .copyright img {
-    height: 4em;
+    height: 2.5em;
 }
 
 .column .copyright {
@@ -383,18 +406,26 @@ h1 img, h2 img, h3 img, h4 img {
 
 .longread {
     padding-right: 4em;
-    padding-bottom: 2em;
+    padding-bottom: 9em;
+    padding-top: 9em;
+}
+
+.longread p {
+    margin-right: 6em;
+}
+
+.longread p img {
+    height: 3em;
 }
 
 .main-parameter {
     display: block;
     font-weight: lighter;
-    padding-bottom: 3em;
-    padding-right: 2em;
+    padding: 2em 2.5em 2em 0;
 }
 
 .main-parameter-value {
-    margin-bottom: .1em;
+    margin-bottom: .15em;
     white-space: nowrap;
 }
 
@@ -409,8 +440,12 @@ h1 img, h2 img, h3 img, h4 img {
     height: 1em;
 }
 
+.main-parameter-description {
+    margin-top: .4em;
+}
+
 .callout-box {
-    border: 2px #b6b6b6 dotted;
+    border: 1.7px #dedede dotted;
     border-radius: 8pt;
     padding: 3em;
     margin-bottom: 3em;
@@ -420,25 +455,31 @@ h1 img, h2 img, h3 img, h4 img {
     margin-bottom: 0;
 }
 
+.header-star {
+    height: .8em;
+    margin-bottom: .2em;
+}
+
 .distribution-table {
     width: 100%;
     vertical-align: middle;
 }
 
 .distribution-table img {
-    height: 1em;
+    height: .8em;
+    margin: -.05em;
 }
 
 .distribution-table td {
-    padding-right: 2em;
-    padding-bottom: .5em;
+    padding-right: 1em;
+    padding-bottom: .7em;
 }
 
 .distribution-table-box {
-    border: 2px #b6b6b6 dotted;
-    border-radius: 8pt;
-    padding: .3em .5em;
-    width: 3em;
+    border: 1.7px #dedede dotted;
+    border-radius: 6pt;
+    padding: .37em .4em;
+    width: 3.3em;
 }
 
 .distribution-table-label {
@@ -476,7 +517,7 @@ h1 img, h2 img, h3 img, h4 img {
 }
 
 .table-data td {
-    border-right: 2px #b6b6b6 dotted;
+    border-right: 1.7px #dedede dotted;
 }
 
 .table-data td.skip-border {
@@ -502,22 +543,27 @@ h1 img, h2 img, h3 img, h4 img {
 }
 
 .table-data tbody tr:nth-child(odd) td {
-    border-top: 2px #b6b6b6 dotted;
-    border-bottom: 2px #b6b6b6 dotted;
+    border-top: 1.7px #dedede dotted;
+    border-bottom: 1.7px #dedede dotted;
 }
 
 .table-data tbody tr:nth-child(odd) td:first-of-type {
-    border-left: 2px #b6b6b6 dotted;
+    border-left: 1.7px #dedede dotted;
     border-radius: 8pt 0 0 8pt;
 }
 
 .table-data tbody tr:nth-child(odd) td:last-of-type {
-    border-right: 2px #b6b6b6 dotted;
+    border-right: 1.7px #dedede dotted;
     border-radius: 0 8pt 8pt 0;
 }
 
 td.table-parameter {
     padding: 2em 1em;
+}
+
+.table-parameter-value .star {
+    margin-bottom: -.1em;
+    margin-right: .2em;
 }
 
 .table-data img {
@@ -545,8 +591,12 @@ td.table-parameter {
 }
 
 .table-medals tbody tr:nth-child(odd) td:nth-of-type(2) {
-    border-left: 2px #b6b6b6 dotted;
+    border-left: 1.7px #dedede dotted;
     border-radius: 8pt 0 0 8pt;
+}
+
+.table-medals tbody tr td:nth-child(3) {
+    width: 25em;
 }
 
 .table-data-medal {
@@ -554,7 +604,7 @@ td.table-parameter {
 }
 
 .table-data-medal img {
-    width: 1em;
+    width: 1.5em;
 }
 
 .table-compare img {
@@ -563,7 +613,7 @@ td.table-parameter {
 }
 
 .table-compare tr td {
-    border-right: 2px #b6b6b6 dotted;
+    border-right: 1.7px #dedede dotted;
 }
 
 .table-compare tr td:last-of-type {
@@ -571,7 +621,7 @@ td.table-parameter {
 }
 
 .table-compare tbody tr td {
-    border-top: 2px #b6b6b6 dotted;
+    border-top: 1.7px #dedede dotted;
 }
 
 .table-compare td {
@@ -594,7 +644,7 @@ td.table-parameter {
 }
 
 .table-compare-photo .table-compare-icon {
-    width: 2em;
+    width: 1.9em;
     position: absolute;
     top: 0;
     right: 0;
@@ -652,7 +702,7 @@ td.table-parameter {
     position: relative;
     width: 100%;
     height: 4em;
-    border-bottom: 2px #b6b6b6 dotted;
+    border-bottom: 1.7px #dedede dotted;
 }
 
 .chart .row .row-label {
@@ -709,6 +759,7 @@ td.table-parameter {
 
 .chart .col .bar .col-label img {
     width: 2em;
+    margin-top: .5em;
 }
 
 .chart .col .col-label {
@@ -729,7 +780,7 @@ td.table-parameter {
 }
 
 .orange-palette .col .bar {
-    background: linear-gradient(to bottom, #fda383 0%, #f7cf68 100%);
+    background: linear-gradient(to top, #fda383 0%, #f7cf68 100%);
 }
 
 .single-pie {

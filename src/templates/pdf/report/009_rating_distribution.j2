@@ -1,6 +1,6 @@
 <div class="page">
     <div class="container">
-        <h2>Средний рейтинг: {{ average_rating }} <img border="0"  src="images/star2.png" alt title></h2>
+        <h2>Средний рейтинг: {{ average_rating }} <img border="0" class="header-star"  src="images/star2.png" alt title></h2>
 
         <div class="column">
             <div>
@@ -30,7 +30,9 @@
                 <p>Начните изучение рейтингов и отзывов с товаров, которые лучше всего продаются в нише. Для этого будет полезна выгрузка всех товаров из полного отчета.</p>
             </div>
 
-            {% include 'blocks/copyright.j2' %}
+            <div class="right-footer">
+                {% include 'blocks/copyright.j2' %}
+            </div>
         </div>
     </div>
 </div>

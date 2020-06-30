@@ -19,7 +19,7 @@
             <tbody>
                 {% for item in best_purchases_overall %}
                 <tr>
-                    <td class="skip-border table-data-medal"><img src="images/t{{ loop.index }}.png" border="0" alt="{{ loop.index }}"></td>
+                    <td class="skip-border table-data-medal"><img src="images/t{{ loop.index }}.png" border="0" alt="{{ loop.index }}" class="table-data-medal"></td>
                     <td class="skip-border"><a href="{{ item.url }}"><img border="0"  src="{{ item.logo }}" border="0" alt title></a></td>
                     <td>
                         <div class="table-data-item-name"><a href="{{ item.url }}">{{ item.name }}</a></div>
@@ -36,6 +36,8 @@
             </tbody>
         </table>
 
-        {% include 'blocks/copyright.j2' %}
     </div>
+     <div class="left-footer">
+         {% include 'blocks/copyright.j2' %}
+     </div>
 </div>

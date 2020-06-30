@@ -19,11 +19,11 @@
             <tbody>
                 {% for item in best_purchases_month %}
                 <tr>
-                    <td class="skip-border"><img src="images/t{{ loop.index }}.png" border="0" alt="{{ loop.index }}" class="table-data-medal"></td>
+                    <td class="skip-border table-data-medal"><img src="images/t{{ loop.index }}.png" border="0" alt="{{ loop.index }}" class="table-data-medal"></td>
                     <td class="skip-border"><a href="{{ item.url }}"><img border="0"  src="{{ item.logo }}" border="0" alt title></a></td>
                     <td>
                         <div class="table-data-item-name"><a href="{{ item.url }}">{{ item.name }}</a></div>
-                        <div class="table-data-item-price">Цена:  {{ item.price.number }} {{ item.price.units }}</div>
+                        <div class="table-data-item-price">Цена: {{ item.price.number }} {{ item.price.units }}</div>
                     </td>
                     <td class="table-parameter skip-border"><div class="table-parameter-value">{{ item.purchases.number }} <span>{{ item.purchases.digits }} {{ item.purchases.units }}</span></div></td>
                     <td class="table-parameter"><div class="table-parameter-value">{{ item.turnover.number }} <span>{{ item.turnover.digits }} {{ item.turnover.units }}</span></div></td>
@@ -35,7 +35,8 @@
                 {% endfor %}
             </tbody>
         </table>
-
-        {% include 'blocks/copyright.j2' %}
     </div>
+     <div class="left-footer">
+         {% include 'blocks/copyright.j2' %}
+     </div>
 </div>
