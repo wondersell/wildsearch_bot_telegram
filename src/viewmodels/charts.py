@@ -1,10 +1,11 @@
-import numpy as np
 import logging
 
-from ..helpers import smart_format_round_super_hard, smart_format_number
+import numpy as np
+
+from ..helpers import smart_format_number, smart_format_round_super_hard
 from .base import BaseViewModel
-from .indicator import Indicator
 from .countries import get_country_code
+from .indicator import Indicator
 
 logger = logging.getLogger(__name__)
 

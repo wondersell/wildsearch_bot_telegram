@@ -1,7 +1,7 @@
 import json
 import logging
-import re
 import math
+import re
 
 import boto3
 import requests
