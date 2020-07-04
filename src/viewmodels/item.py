@@ -2,6 +2,7 @@ from dateutil.parser import parse as date_parse
 
 from .base import BaseListViewModel, BaseViewModel
 from .indicator import Indicator
+from .months import months_short
 
 
 class Item(BaseViewModel):
@@ -53,20 +54,7 @@ class Item(BaseViewModel):
 
     @property
     def first_review_date(self):
-        months = {
-            1: 'янв.',
-            2: 'фев.',
-            3: 'мар.',
-            4: 'апр.',
-            5: 'май.',
-            6: 'июн.',
-            7: 'июл.',
-            8: 'авг.',
-            9: 'сен.',
-            10: 'окт.',
-            11: 'ноя.',
-            12: 'дек.',
-        }
+        months = months_short()
         try:
             date = date_parse(self._first_review)
             return f'{months[date.month]} {date.year}'

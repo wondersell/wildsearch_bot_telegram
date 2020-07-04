@@ -14,6 +14,7 @@ from .item import Item, ItemsList
 from .popular_brands import PopularBrandsList
 from .rating_distribution import RatingDistributionList
 from .sales_distribution import SalesDistribution
+from .months import months_full
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,10 @@ class Report(BaseViewModel):
 
     @property
     def base_current_date(self):
-        return datetime.datetime.today().strftime('%d %B %Y')
+        today = datetime.datetime.today()
+        months = months_full()
+
+        return f'{today.day} {months[today.month]} {today.year}'
 
     @property
     def category_url(self):
