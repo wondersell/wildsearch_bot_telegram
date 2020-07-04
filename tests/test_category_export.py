@@ -97,10 +97,10 @@ def test_schedule_category_export_with_exception(mocked_send_message, mocked_cat
 @patch('src.tasks.send_category_requests_count_message.delay')
 @patch('telegram.Bot.send_document')
 @patch('telegram.Bot.send_message')
-def test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message, set_scrapinghub_requests_mock):
+def test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message, set_scrapinghub_requests_mock, bot_user):
     set_scrapinghub_requests_mock(job_id='414324/1/926')
 
-    calculate_category_stats('414324/1/926', '1423')
+    calculate_category_stats('414324/1/926', bot_user.chat_id)
 
     required_stats = [
         'Количество товаров',
@@ -125,10 +125,10 @@ def test_category_export_task_sends_message(mocked_send_message, mocked_send_doc
 ])
 @patch('telegram.Bot.send_document')
 @patch('telegram.Bot.send_message')
-def test_category_export_task_sends_correct_filenames(mocked_send_message, mocked_send_document, job_id, expected_marketplace, set_scrapinghub_requests_mock):
+def test_category_export_task_sends_correct_filenames(mocked_send_message, mocked_send_document, job_id, expected_marketplace, set_scrapinghub_requests_mock, bot_user):
     set_scrapinghub_requests_mock(job_id=job_id)
 
-    calculate_category_stats(job_id, '1423')
+    calculate_category_stats(job_id, bot_user.chat_id)
 
     assert expected_marketplace in mocked_send_document.call_args.kwargs['filename']
 

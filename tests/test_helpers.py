@@ -128,7 +128,7 @@ def test_smart_format_number(test_number, expected):
     [2348152851823500, ''],
 ])
 def test_get_digits_text_regular(test_number, expected):
-    assert get_digits_text(len(str(test_number))) == expected
+    assert get_digits_text(test_number) == expected
 
 
 @pytest.mark.parametrize('test_number, expected', [
@@ -150,7 +150,7 @@ def test_get_digits_text_regular(test_number, expected):
     [2348152851823500, ''],
 ])
 def test_get_digits_text_not_skip_thousends(test_number, expected):
-    assert get_digits_text(len(str(test_number)), skip_thousands=False) == expected
+    assert get_digits_text(test_number, skip_thousands=False) == expected
 
 
 @pytest.mark.parametrize('test_number, expected', [

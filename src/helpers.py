@@ -2,6 +2,7 @@ import json
 import logging
 import math
 import re
+from typing import Union
 
 import boto3
 import requests
@@ -17,11 +18,11 @@ s3 = boto3.client('s3')
 
 
 class AmplitudeLogger:
-    def __init__(self, api_key):
+    def __init__(self, api_key: str):
         self.api_key = api_key
         self.endpoint = 'https://api.amplitude.com/2/httpapi'
 
-    def log(self, user_id, event, user_properties=None, event_properties=None, timestamp=None):
+    def log(self, user_id: int, event: str, user_properties=None, event_properties=None, timestamp=None):
         amp_event = {
             'user_id': user_id,
             'event_type': event,
@@ -47,7 +48,7 @@ class AmplitudeLogger:
         requests.post(self.endpoint, data=json.dumps(amp_request))
 
 
-def detect_mp_by_job_id(job_id):
+def detect_mp_by_job_id(job_id: str):
     spider = re.findall(r'\d+\/(\d+)\/\d+', job_id)[0]
 
     if spider == env('SH_WB_SPIDER'):
@@ -67,12 +68,12 @@ def init_scrapinghub():
     return client, project
 
 
-def scheduled_jobs_count(project, spider) -> int:
+def scheduled_jobs_count(project: str, spider: str) -> int:
     spider = project.spiders.get(spider)
     return spider.jobs.count(state='pending') + spider.jobs.count(state='running')
 
 
-def category_export(url, chat_id, spider='wb') -> str:
+def category_export(url: str, chat_id: int, spider='wb') -> str:
     """Schedule WB category export on Scrapinghub."""
     logger.info(f'Export {url} for chat #{chat_id}')
     client, project = init_scrapinghub()
@@ -90,8 +91,7 @@ def category_export(url, chat_id, spider='wb') -> str:
     return 'https://app.scrapinghub.com/p/' + job.key
 
 
-def smart_format_number(number):
-
+def smart_format_number(number: Union[int, float]):
     # 10 650 руб.
     # 15 тыс. шт.
     # 53 тыс
@@ -113,12 +113,12 @@ def smart_format_number(number):
         return '–', ''
 
     pretty = smart_format_prettify(rounded)
-    text_digits = get_digits_text(len(str(number)))
+    text_digits = get_digits_text(number)
 
     return pretty, text_digits
 
 
-def smart_format_round(number) -> (int, int):
+def smart_format_round(number: Union[int, float]) -> (int, int):
     digits = len(str(abs(number)))
 
     rounded = round(number)
@@ -172,7 +172,7 @@ def smart_format_round(number) -> (int, int):
     return rounded, natural
 
 
-def smart_format_round_hard(number) -> (int, int):
+def smart_format_round_hard(number: Union[int, float]) -> (int, int):
     number = round(number)
     digits = len(str(abs(number)))
     remainder = digits % 3
@@ -199,7 +199,7 @@ def smart_format_round_hard(number) -> (int, int):
     return rounded, natural
 
 
-def smart_format_round_super_hard(number) -> (int, int):
+def smart_format_round_super_hard(number: Union[int, float]) -> (int, int):
     number = round(number)
     digits = len(str(abs(number)))
     remainder = digits % 3
@@ -233,7 +233,9 @@ def smart_format_prettify(number):
     return number
 
 
-def get_digits_text(number_length: int, skip_thousands: bool = True) -> str:
+def get_digits_text(number: Union[int, float], skip_thousands: bool = True) -> str:
+    number_length = len(str(round(number)))
+
     if skip_thousands:
         if 4 < number_length <= 6:
             return 'тыс.'
@@ -251,3 +253,21 @@ def get_digits_text(number_length: int, skip_thousands: bool = True) -> str:
         return 'трлн.'
 
     return ''
+
+
+def get_digits_divider(number: Union[int, float]) -> int:
+    number_length = len(str(round(number)))
+
+    if 3 < number_length <= 6:
+        return 1000
+
+    if 6 < number_length <= 9:
+        return 1000000
+
+    if 9 < number_length <= 12:
+        return 1000000000
+
+    if 12 < number_length <= 15:
+        return 1000000000000
+
+    return 1

@@ -7,7 +7,7 @@ from dateutil.parser import parse as date_parse
 from seller_stats.category_stats import calc_hhi, calc_sales_distribution
 
 from .base import BaseViewModel
-from .charts import BarChart
+from .charts import FlagsBarChart, IntervalBarChart
 from .helpers import image_bag
 from .indicator import Indicator
 from .item import Item, ItemsList
@@ -144,7 +144,7 @@ class Report(BaseViewModel):
         df = distributions_price.df.loc[:, ['bin', 'sku']]
         df['val'] = df['sku']
 
-        return BarChart(df, x_axis='Цена', y_axis='Количество артикулов').to_dict()
+        return IntervalBarChart(df, x_axis='Цена', y_axis='Количество артикулов').to_dict()
 
     @property
     def sales_distribution_turnover_chart(self):
@@ -153,7 +153,7 @@ class Report(BaseViewModel):
         df = distributions_price.df.loc[:, ['bin', 'turnover_month']]
         df['val'] = df['turnover_month']
 
-        return BarChart(df, x_axis='Цена', y_axis='Оборот').to_dict()
+        return IntervalBarChart(df, x_axis='Цена', y_axis='Оборот').to_dict()
 
     @property
     def brand_countries_chart(self):
@@ -163,7 +163,7 @@ class Report(BaseViewModel):
         df['val'] = df['sku']
         df = df.replace('Соединенные Штаты', 'США')
 
-        return BarChart(df, x_axis='Страна', y_axis='Количество артикулов', detect_countries=True).to_dict()
+        return FlagsBarChart(df, x_axis='Страна', y_axis='Количество артикулов', detect_countries=True).to_dict()
 
     @property
     def production_countries_chart(self):
@@ -173,7 +173,7 @@ class Report(BaseViewModel):
         df['val'] = df['sku']
         df = df.replace('Соединенные Штаты', 'США')
 
-        return BarChart(df, x_axis='Страна', y_axis='Количество артикулов', detect_countries=True).to_dict()
+        return FlagsBarChart(df, x_axis='Страна', y_axis='Количество артикулов', detect_countries=True).to_dict()
 
     @property
     def popular_brands(self):
