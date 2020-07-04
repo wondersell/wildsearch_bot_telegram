@@ -34,7 +34,7 @@ class Item(BaseViewModel):
 
     @property
     def price(self):
-        return Indicator(number=self._price, units='руб.', precise=True)
+        return Indicator(number=float(self._price), units='руб.', precise=True)
 
     @property
     def purchases(self):
