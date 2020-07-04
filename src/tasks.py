@@ -42,6 +42,7 @@ def get_cat_update_users():
 
 @celery.task()
 def calculate_category_stats(job_id, chat_id):
+    user = user_get_by(chat_id=chat_id)
     slug, marketplace, transformer = detect_mp_by_job_id(job_id=job_id)
 
     data = ScrapinghubLoader(job_id=job_id, transformer=transformer).load()
@@ -51,7 +52,7 @@ def calculate_category_stats(job_id, chat_id):
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
 
     # export_file = generate_category_stats_export_file(stats)
-    export_file = generate_category_stats_report_file(stats)
+    export_file = generate_category_stats_report_file(stats, username=user.user_name)
 
     filename, file_extension = os.path.splitext(export_file.name)
 
@@ -167,7 +168,7 @@ def generate_category_stats_export_file(stats):
     return temp_file
 
 
-def generate_category_stats_report_file(stats):
+def generate_category_stats_report_file(stats, username='%username%'):
     from jinja2 import Environment, FileSystemLoader, select_autoescape
     from weasyprint import HTML
     from .viewmodels.report import Report
@@ -182,7 +183,7 @@ def generate_category_stats_report_file(stats):
     template = environment.get_template('_index.j2')
 
     temp_file = tempfile.NamedTemporaryFile(suffix='.pdf', prefix='wb_category_', mode='w+b', delete=False)
-    report_vm = Report(stats=stats)
+    report_vm = Report(stats=stats, username=username)
 
     HTML(string=template.render(report_vm.to_dict()), base_url=f'{base_path}').write_pdf(target=temp_file.name)
 

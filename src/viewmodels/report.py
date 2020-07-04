@@ -35,8 +35,9 @@ class Report(BaseViewModel):
         'rating',
     ]
 
-    def __init__(self, stats):
+    def __init__(self, stats, username):
         self.stats = stats
+        self.username = username
 
     @property
     def base_current_date(self):
@@ -44,6 +45,10 @@ class Report(BaseViewModel):
         months = months_full()
 
         return f'{today.day} {months[today.month]} {today.year}'
+
+    @property
+    def base_username(self):
+        return self.username
 
     @property
     def category_url(self):
