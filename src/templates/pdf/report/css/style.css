@@ -772,8 +772,9 @@ td.table-parameter {
 }
 
 .chart .col .bar .col-label img {
-    width: 2em;
-    margin-top: .5em;
+    display: block;
+    height: 1.3em;
+    margin: .5em auto;
 }
 
 .chart .col .col-label {
