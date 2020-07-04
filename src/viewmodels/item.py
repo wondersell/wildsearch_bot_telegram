@@ -1,3 +1,5 @@
+from textwrap import shorten
+
 from dateutil.parser import parse as date_parse
 
 from .base import BaseListViewModel, BaseViewModel
@@ -30,7 +32,7 @@ class Item(BaseViewModel):
 
     @property
     def name(self):
-        return f'{self._brand_name} / {self._name}'
+        return shorten(f'{self._brand_name} / {self._name}', width=55, placeholder='...')
 
     @property
     def price(self):
