@@ -11,10 +11,10 @@ from .charts import BarChart
 from .helpers import image_bag
 from .indicator import Indicator
 from .item import Item, ItemsList
+from .months import months_full
 from .popular_brands import PopularBrandsList
 from .rating_distribution import RatingDistributionList
 from .sales_distribution import SalesDistribution
-from .months import months_full
 
 logger = logging.getLogger(__name__)
 
