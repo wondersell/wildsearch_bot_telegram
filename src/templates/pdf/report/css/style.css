@@ -661,10 +661,14 @@ td.table-parameter {
 }
 
 .chart .canvas {
-    height: 24em;
+    height: 25em;
     position: relative;
     margin-left: 6em;
     margin-right: 2em;
+}
+
+.chart .rows {
+    position: relative;
 }
 
 .chart .rows, .chart .columns {
@@ -701,21 +705,30 @@ td.table-parameter {
     display: block;
     position: relative;
     width: 100%;
-    height: 4em;
+    height: 5em;
+    border-top: 1.7px #dedede dotted;
+}
+
+.chart .row:last-of-type {
     border-bottom: 1.7px #dedede dotted;
 }
 
-.chart .row .row-label {
+.chart .row-label {
     position: absolute;
     text-align: right;
     width: 4em;
     left: -4.5em;
-    bottom: -.7em;
+    top: -.6em;
     height: 1em;
     overflow: visible;
 }
 
-.chart .row .row-label span {
+.chart .rows .axis-zero {
+    top: auto;
+    bottom: -.4em;
+}
+
+.chart .row-label span {
     display: block;
 }
 
@@ -731,6 +744,7 @@ td.table-parameter {
     position: absolute;
     border-radius: .25em;
     width: .5em;
+    /*min-height: 3%;*/
     right: -.25em;
     bottom: -.25em;
 }
