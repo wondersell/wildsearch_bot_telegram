@@ -7,63 +7,24 @@
                 <div class="canvas">
                     <div class="rows">
                         <div class="axis-name"><span>Количество артикулов</span></div>
+                        <div class="axis-zero row-label">0</div>
+
+                        {% for row in brand_countries_chart.rows %}
                         <div class="row">
-                            <div class="row-label">600</div>
+                            <div class="row-label">{{ row.number }} <span>{{ row.digits }}</span></div>
                         </div>
-                        <div class="row">
-                            <div class="row-label">500</div>
-                        </div>
-                        <div class="row">
-                            <div class="row-label">300</div>
-                        </div>
-                        <div class="row">
-                            <div class="row-label">200</div>
-                        </div>
-                        <div class="row">
-                            <div class="row-label">100</div>
-                        </div>
-                        <div class="row">
-                            <div class="row-label">0</div>
-                        </div>
+                        {% endfor %}
                     </div>
 
                     <div class="columns">
-                        <div class="col">
-                            <div class="bar" style="height:95%;">
-                                <div class="value">550</div>
-                                <div class="col-label"><img border="0"  src="images/flags/ru.png" alt title> <span>Россия</span></div>
+                        {% for col in  brand_countries_chart.bars %}
+                            <div class="col">
+                                <div class="bar" style="height:{{ col.height }}%;">
+                                    <div class="value">{{ col.v.number }} <span>{{ col.v.digits }}</span></div>
+                                    <div class="col-label"><img src="images/flags/{{ col.country_code }}.png"><span>{{ col.bin }}</span></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="bar" style="height:80%;">
-                                <div class="value">800</div>
-                                <div class="col-label"><img border="0"  src="images/flags/br.png" alt title> <span>Белорусь</span></div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="bar" style="height:30%;">
-                                <div class="value">300</div>
-                                <div class="col-label"><img border="0"  src="images/flags/gr.png" alt title> <span>Греция</span></div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="bar" style="height:9%;">
-                                <div class="value">90</div>
-                                <div class="col-label"><img border="0"  src="images/flags/tr.png" alt title> <span>Турция</span></div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="bar" style="height:56%;">
-                                <div class="value">359</div>
-                                <div class="col-label"><img border="0"  src="images/flags/it.png" alt title> <span>Италия</span></div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="bar" style="height:10%;">
-                                <div class="value">100</div>
-                                <div class="col-label"><img border="0"  src="images/dr.png" alt title><span>Другие</span></div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -74,63 +35,24 @@
                 <div class="canvas">
                     <div class="rows">
                         <div class="axis-name"><span>Количество артикулов</span></div>
+                        <div class="axis-zero row-label">0</div>
+
+                        {% for row in production_countries_chart.rows %}
                         <div class="row">
-                            <div class="row-label">600</div>
+                            <div class="row-label">{{ row.number }} <span>{{ row.digits }}</span></div>
                         </div>
-                        <div class="row">
-                            <div class="row-label">500</div>
-                        </div>
-                        <div class="row">
-                            <div class="row-label">300</div>
-                        </div>
-                        <div class="row">
-                            <div class="row-label">200</div>
-                        </div>
-                        <div class="row">
-                            <div class="row-label">100</div>
-                        </div>
-                        <div class="row">
-                            <div class="row-label">0</div>
-                        </div>
+                        {% endfor %}
                     </div>
 
                     <div class="columns">
-                        <div class="col">
-                            <div class="bar" style="height:95%;">
-                                <div class="value">550</div>
-                                <div class="col-label"><img border="0"  src="images/flags/ru.png" alt title> <span>Россия</span></div>
+                        {% for col in  production_countries_chart.bars %}
+                            <div class="col">
+                                <div class="bar" style="height:{{ col.height }}%;">
+                                    <div class="value">{{ col.v.number }} <span>{{ col.v.digits }}</span></div>
+                                    <div class="col-label"><img src="images/flags/{{ col.country_code }}.png"><span>{{ col.bin }}</span></div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="col">
-                            <div class="bar" style="height:80%;">
-                                <div class="value">800</div>
-                                <div class="col-label"><img border="0"  src="images/flags/br.png" alt title> <span>Белорусь</span></div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="bar" style="height:30%;">
-                                <div class="value">300</div>
-                                <div class="col-label"><img border="0"  src="images/flags/gr.png" alt title> <span>Греция</span></div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="bar" style="height:9%;">
-                                <div class="value">90</div>
-                                <div class="col-label"><img border="0"  src="images/flags/tr.png" alt title> <span>Турция</span></div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="bar" style="height:56%;">
-                                <div class="value">359</div>
-                                <div class="col-label"><img border="0"  src="images/flags/it.png" alt title> <span>Италия</span></div>
-                            </div>
-                        </div>
-                        <div class="col">
-                            <div class="bar" style="height:10%;">
-                                <div class="value">100</div>
-                                <div class="col-label"><img border="0"  src="images/dr.png" alt title><span>Другие</span></div>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
