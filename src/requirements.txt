@@ -1,7 +1,6 @@
 python-telegram-bot==12.7
 falcon==2.0.0
-seller-stats==0.1.1
-
+seller-stats==0.2.0
 
 scrapinghub==2.3.1
 sentry-sdk==0.15.1
@@ -12,12 +11,15 @@ pandas==1.0.5
 envparse==0.2.0
 msgpack==1.0.0
 json_log_formatter==0.3.0
+python-dateutil==2.8.1
 
 celery==4.4.5
 flower==0.9.4
 mongoengine==0.20.0
 redis==3.5.3
 boto3==1.14.7
+Jinja2==2.11.2
+WeasyPrint
 
 pytest==5.4.3
 pytest-cov==2.10.0

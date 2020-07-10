@@ -1,0 +1,97 @@
+<div class="page">
+    <div class="container">
+        <h2>{{ category_name }}</h2>
+
+        <div class="column">
+            <div class="container">
+                <div class="column">
+                    <div class="main-parameter">
+                        <div class="main-parameter-value">
+                            {{ base_goods.number }} <span>{{ base_goods.digits }}</span>
+                        </div>
+                        <div class="main-parameter-label">{{ base_goods.label }}</div>
+                    </div>
+
+                    <div class="main-parameter">
+                        <div class="main-parameter-value">
+                            {{ base_turnover.number }} <span>{{ base_turnover.digits }} {{ base_turnover.units }}</span>
+                        </div>
+                        <div class="main-parameter-label">Оборот в месяц всего</div>
+                    </div>
+
+                    <div class="main-parameter">
+                        <div class="main-parameter-value">
+                            {{ base_turnover_median.number }} <span>{{ base_turnover_median.digits }} {{ base_turnover_median.units }}</span>
+                        </div>
+                        <div class="main-parameter-label">Оборот в месяц у медианного товара</div>
+                    </div>
+
+                    <div class="main-parameter">
+                        <div class="main-parameter-label">Монопольность</div>
+
+                        <div class="main-parameter-stars">
+                            {% for img in base_monopoly_index_images %}
+                                <img border="0" src="images/{{ img }}.png" alt title>
+                            {%  endfor %}
+
+                            <span>{{ base_monopoly_index.number }}/5</span>
+                        </div>
+
+                        <div class="main-parameter-description">
+                            Чем выше балл, тем больше доля продаж у топовых брендов, а значит тем сложнее вывести свой товар.
+                        </div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="main-parameter">
+                        <div class="main-parameter-value">
+                            {{ base_brands.number }} <span>{{ base_brands.digits }}</span>
+                        </div>
+                        <div class="main-parameter-label">{{ base_brands.label}}</div>
+                    </div>
+
+                    <div class="main-parameter">
+                        <div class="main-parameter-value">
+                            {{ base_sold.number }} <span>{{ base_sold.digits }} {{ base_sold.units }}</span>
+                        </div>
+                        <div class="main-parameter-label">Продаж в месяц всего</div>
+                    </div>
+
+                    <div class="main-parameter">
+                        <div class="main-parameter-value">
+                            {{ base_sold_median.number }} <span>{{ base_sold_median.digits }} {{ base_sold_median.units }}</span>
+                        </div>
+                        <div class="main-parameter-label">Продаж в месяц у медианного товара</div>
+                    </div>
+
+                    <div class="main-parameter">
+                        <div class="main-parameter-label">Мусорность</div>
+
+                        <div class="main-parameter-stars">
+                            {% for img in base_trash_index_images %}
+                                <img border="0" src="images/{{ img }}.png" alt title>
+                            {%  endfor %}
+
+                            <span>{{ base_trash_index.number }}/5</span>
+                        </div>
+
+                        <div class="main-parameter-description">
+                            Чем выше балл, тем больше доля товаров без продаж, а значит тем выше шанс, что ваш товар продаваться не будет.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="column">
+            <div class="callout-box">
+                <p>Сколько заказов приходится на раздел? Сколько продавцов претендуют на эти заказы? Сколько денег крутится в сегменте и хватит ли их для достижения ваших финансовых целей? Эти цифры смогут прояснить ситуацию.</p>
+                <p>Обратите внимание на объем продаж товара-середнячка и конкуренцию. Объем продаж скажет какой оборот можно получить на одной позиции. Конкуренция – насколько сложно будет добиться этого оборота, потеснив другие бренды. Если объем продаж одной позиции кажется вам слишком маленьким, подумайте над расширением ассортимента.</p>
+            </div>
+
+            <div class="right-footer">
+                {% include 'blocks/copyright.j2' %}
+            </div>
+        </div>
+    </div>
+</div>

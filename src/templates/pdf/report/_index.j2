@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<title>Отчет</title>
+	<link rel="stylesheet" type="text/css" href="css/style.css" />
+</head>
+<body>
+	<div id="page-wrapper">
+        {% include '001_cover.j2' %}
+
+        {% include '002_intro.j2' %}
+
+        {% include '003_base_indicators.j2' %}
+
+        {% include '004_sales_distribution.j2' %}
+
+        {% include '005_sales_distribution_chart.j2' %}
+
+        {% include '006_brand_countries_chart.j2' %}
+
+        {% include '007_popular_brands_list.j2' %}
+
+        {# include '008_popular_brands_chart.j2' #}
+
+		{% include '009_rating_distribution.j2' %}
+
+        {% include '010_best_goods_info.j2' %}
+
+		{% include '011_best_goods_list_1.j2' %}
+
+        {% include '012_best_goods_list_2.j2' %}
+
+        {% include '013_best_goods_list_3.j2' %}
+
+        {% include '014_best_goods_list_4.j2' %}
+
+        {% include '015_best_goods_overview_list.j2' %}
+
+        {# include '016_neighbours_info.j2' #}
+
+        {# include '017_neighbours_list.j2' #}
+
+        {% include '018_vocabulary.j2' %}
+	</div>
+</body>
+</html>

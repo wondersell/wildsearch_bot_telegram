@@ -1,0 +1,38 @@
+<div class="page">
+    <div class="container">
+        <h2>Средний рейтинг: {{ average_rating }} <img border="0" class="header-star"  src="images/star2.png" alt title></h2>
+
+        <div class="column">
+            <div>
+                <table class="distribution-table">
+                    {% for bin in rating_distribution %}
+                    <tr>
+                        <td width="100%">
+                            {% if bin.images %}
+                                <div class="distribution-table-label">
+                                    {% for img in bin.images %}
+                                        <img src="images/{{ img }}.png" alt="*">
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="distribution-table-label">{{ bin.label }}:</div>
+                            {% endif %}
+                        </td>
+                        <td><div class="distribution-table-box"><div class="distribution-table-value">{{ bin.ratio }}</div></div></td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+        <div class="column">
+            <div class="callout-box">
+                <p>Довольны ли покупатели товарами, представленными в разделе? Что их раздражает, а что привлекает? Сильно ли зависят продажи от рейтинга товаров? Ответы на эти вопросы важны, если вы перепродаете чужие товары и еще важнее, если производите их сами. Многие стратегии продвижения на товарных маркетплейсах строятся на учете  и использовании знаний об отзывах товаров конкурентов.</p>
+                <p>Начните изучение рейтингов и отзывов с товаров, которые лучше всего продаются в нише. Для этого будет полезна выгрузка всех товаров из полного отчета.</p>
+            </div>
+
+            <div class="right-footer">
+                {% include 'blocks/copyright.j2' %}
+            </div>
+        </div>
+    </div>
+</div>

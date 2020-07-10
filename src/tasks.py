@@ -1,5 +1,7 @@
 import logging
+import os
 import tempfile
+import time
 
 import boto3
 import pandas as pd
@@ -40,6 +42,7 @@ def get_cat_update_users():
 
 @celery.task()
 def calculate_category_stats(job_id, chat_id):
+    user = user_get_by(chat_id=chat_id)
     slug, marketplace, transformer = detect_mp_by_job_id(job_id=job_id)
 
     data = ScrapinghubLoader(job_id=job_id, transformer=transformer).load()
@@ -48,12 +51,20 @@ def calculate_category_stats(job_id, chat_id):
     message = generate_category_stats_message(stats=stats)
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)
 
-    export_file = generate_category_stats_file(stats)
-    bot.send_document(
-        chat_id=chat_id,
-        document=export_file,
-        filename=f'{stats.category_name()} на {marketplace}.xlsx',
-    )
+    # export_file = generate_category_stats_export_file(stats)
+    export_file = generate_category_stats_report_file(stats, username=user.user_name)
+
+    filename, file_extension = os.path.splitext(export_file.name)
+
+    try:
+        bot.send_document(
+            chat_id=chat_id,
+            document=export_file,
+            filename=f'{stats.category_name()} на {marketplace}.{file_extension}',
+        )
+    except Exception as exception_info:
+        logger.error(f'Error while sending file: {str(exception_info)}')
+        pass
 
     send_category_requests_count_message.delay(chat_id)
     track_amplitude.delay(chat_id=chat_id, event=f'Received {slug} category analyses')
@@ -140,7 +151,9 @@ def generate_category_stats_message(stats):
 """
 
 
-def generate_category_stats_file(stats):
+def generate_category_stats_export_file(stats):
+    start_time = time.time()
+
     temp_file = tempfile.NamedTemporaryFile(suffix='.xlsx', prefix='wb_category_', mode='r+b', delete=True)
 
     writer = pd.ExcelWriter(temp_file.name)
@@ -149,5 +162,31 @@ def generate_category_stats_file(stats):
     distributions = calc_sales_distribution(stats)
     distributions.df.to_excel(writer, sheet_name='Распределение продаж', index=None, header=True)
     writer.save()
+
+    logger.info(f'Export file generated in {time.time() - start_time}s, {os.path.getsize(temp_file.name)} bytes')
+
+    return temp_file
+
+
+def generate_category_stats_report_file(stats, username='%username%'):
+    from jinja2 import Environment, FileSystemLoader, select_autoescape
+    from weasyprint import HTML
+    from .viewmodels.report import Report
+
+    start_time = time.time()
+
+    base_path = os.path.dirname(os.path.abspath(__file__)) + '/templates/pdf/report/'
+    environment = Environment(
+        loader=FileSystemLoader(base_path),
+        autoescape=select_autoescape(['html', 'xml']),
+    )
+    template = environment.get_template('_index.j2')
+
+    temp_file = tempfile.NamedTemporaryFile(suffix='.pdf', prefix='wb_category_', mode='w+b', delete=False)
+    report_vm = Report(stats=stats, username=username)
+
+    HTML(string=template.render(report_vm.to_dict()), base_url=f'{base_path}').write_pdf(target=temp_file.name)
+
+    logger.info(f'PDF report generated in {time.time() - start_time}s, {os.path.getsize(temp_file.name)} bytes')
 
     return temp_file

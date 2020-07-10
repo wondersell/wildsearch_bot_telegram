@@ -1,0 +1,72 @@
+<div class="page">
+    <div class="container">
+        <div class="column">
+            <div class="chart blue-palette">
+                <h4 class="chart-heading">Происхождение бренда</h4>
+
+                <div class="canvas">
+                    <div class="rows">
+                        <div class="axis-name"><span>Количество артикулов</span></div>
+                        <div class="axis-zero row-label">0</div>
+
+                        {% for row in brand_countries_chart.rows %}
+                        <div class="row">
+                            <div class="row-label">{{ row.number }} <span>{{ row.digits }}</span></div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="columns">
+                        {% for col in  brand_countries_chart.bars %}
+                            <div class="col">
+                                <div class="bar" style="height:{{ col.height }}%;">
+                                    <div class="value">{{ col.v.number }} <span>{{ col.v.digits }}</span></div>
+                                    <div class="col-label"><img src="images/flags/{{ col.country_code }}.png"><span>{{ col.bin_text }}</span></div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart orange-palette">
+                <h4 class="chart-heading">Страна производства</h4>
+
+                <div class="canvas">
+                    <div class="rows">
+                        <div class="axis-name"><span>Количество артикулов</span></div>
+                        <div class="axis-zero row-label">0</div>
+
+                        {% for row in production_countries_chart.rows %}
+                        <div class="row">
+                            <div class="row-label">{{ row.number }} <span>{{ row.digits }}</span></div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="columns">
+                        {% for col in  production_countries_chart.bars %}
+                            <div class="col">
+                                <div class="bar" style="height:{{ col.height }}%;">
+                                    <div class="value">{{ col.v.number }} <span>{{ col.v.digits }}</span></div>
+                                    <div class="col-label"><img src="images/flags/{{ col.country_code }}.png"><span>{{ col.bin_text }}</span></div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="column">
+            <h2>Происхождение товара</h2>
+
+            <div class="callout-box">
+                <p>Если в категории хорошо продаются зарубежные товары, оцените возможность их производства у себя – возможно, это будет дешевле закупки за рубежом. Иногда часть брендов относится к одной стране, а товары производятся в других – значит, в категории много продуктов, произведенных по контракту (Private Label) – это может быть отличной возможностью для вывода собственной марки по этой же схеме.</p>
+                <p>Вы можете заказать расширенный отчет с зависимостью продаж от страны бренда и производства, чтобы узнать: в каких странах производятся лучшие товары и каким странам доверяют покупатели.</p>
+            </div>
+
+            {% include 'blocks/copyright.j2' %}
+        </div>
+    </div>
+</div>

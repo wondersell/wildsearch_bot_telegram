@@ -23,8 +23,6 @@ def set_scrapinghub_requests_mock(requests_mock, sample_category_data_raw):
     def _set_scrapinghub_requests_mock(pending_count=1, running_count=1, job_id='123/1/2'):
         spider = 'wb' if re.findall(r'\d+\/(\d+)\/\d+', job_id)[0] == str(1) else 'ozon'
 
-        print(spider)
-
         requests_mock.get('https://storage.scrapinghub.com/ids/414324/spider/wb', text='1')
         requests_mock.get('https://storage.scrapinghub.com/ids/414324/spider/ozon', text='1')
         requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=pending&spider=wb', text=f'{pending_count}')
@@ -99,10 +97,10 @@ def test_schedule_category_export_with_exception(mocked_send_message, mocked_cat
 @patch('src.tasks.send_category_requests_count_message.delay')
 @patch('telegram.Bot.send_document')
 @patch('telegram.Bot.send_message')
-def test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message, set_scrapinghub_requests_mock):
-    set_scrapinghub_requests_mock(job_id='414324/1/735')
+def test_category_export_task_sends_message(mocked_send_message, mocked_send_document, mocked_send_category_requests_count_message, set_scrapinghub_requests_mock, bot_user):
+    set_scrapinghub_requests_mock(job_id='414324/1/926')
 
-    calculate_category_stats('414324/1/735', '1423')
+    calculate_category_stats('414324/1/926', bot_user.chat_id)
 
     required_stats = [
         'Количество товаров',
@@ -123,14 +121,14 @@ def test_category_export_task_sends_message(mocked_send_message, mocked_send_doc
 
 
 @pytest.mark.parametrize('job_id, expected_marketplace', [
-    ['414324/1/735', 'Wildberries'],
+    ['414324/1/926', 'Wildberries'],
 ])
 @patch('telegram.Bot.send_document')
 @patch('telegram.Bot.send_message')
-def test_category_export_task_sends_correct_filenames(mocked_send_message, mocked_send_document, job_id, expected_marketplace, set_scrapinghub_requests_mock):
+def test_category_export_task_sends_correct_filenames(mocked_send_message, mocked_send_document, job_id, expected_marketplace, set_scrapinghub_requests_mock, bot_user):
     set_scrapinghub_requests_mock(job_id=job_id)
 
-    calculate_category_stats(job_id, '1423')
+    calculate_category_stats(job_id, bot_user.chat_id)
 
     assert expected_marketplace in mocked_send_document.call_args.kwargs['filename']
 

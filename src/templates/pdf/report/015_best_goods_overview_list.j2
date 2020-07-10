@@ -1,0 +1,91 @@
+<div class="page">
+    <div class="container">
+        <h2>Обзор товаров</h2>
+
+        <table class="table-compare">
+            <thead>
+                <tr>
+                    <td width="20%" class="table-compare-photo"></td>
+                    <td width="20%" class="table-compare-photo">
+                        <div>
+                            <img src="images/compare-icons-1.png" class="table-compare-icon">
+                            <a href="{{ goods_overview.expensive.url }}"><img src="{{ goods_overview.expensive.logo }}" alt="{{ goods_overview.expensive.name }}"></a>
+                        </div>
+                    </td>
+                    <td width="20%" class="table-compare-photo">
+                        <div>
+                            <img src="images/compare-icons-2.png" class="table-compare-icon">
+                            <a href="{{ goods_overview.cheap.url }}"><img src="{{ goods_overview.cheap.logo }}" alt="{{ goods_overview.cheap.name }}"></a>
+                        </div>
+                    </td>
+                    <td width="20%" class="table-compare-photo">
+                        <div>
+                            <img src="images/compare-icons-3.png" class="table-compare-icon">
+                            <a href="{{ goods_overview.old.url }}"><img src="{{ goods_overview.old.logo }}" alt="{{ goods_overview.old.name }}"></a>
+                        </div>
+                    </td>
+                    <td width="20%" class="table-compare-photo">
+                        <div>
+                            <img src="images/compare-icons-4.png" class="table-compare-icon">
+                            <a href="{{ goods_overview.bad.url }}"><img src="{{ goods_overview.bad.logo }}" alt="{{ goods_overview.bad.name }}"></a>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><div class="table-data-item-type">Самый дорогой</div></td>
+                    <td><div class="table-data-item-type">Самый дешевый</div></td>
+                    <td><div class="table-data-item-type">Самый старый</div></td>
+                    <td><div class="table-data-item-type">Самый низкий рейтинг</div></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.expensive.price.number }} <span>{{ goods_overview.expensive.price.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.cheap.price.number }} <span>{{ goods_overview.cheap.price.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.old.price.number }} <span>{{ goods_overview.old.price.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.bad.price.number }} <span>{{ goods_overview.bad.price.units }}</span></div></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td><div class="table-data-item-name"><a href="{{ goods_overview.expensive.url }}">{{ goods_overview.expensive.name }}</a></div></td>
+                    <td><div class="table-data-item-name"><a href="{{ goods_overview.cheap.url }}">{{ goods_overview.cheap.name }}</a></div></td>
+                    <td><div class="table-data-item-name"><a href="{{ goods_overview.old.url }}">{{ goods_overview.old.name }}</a></div></td>
+                    <td><div class="table-data-item-name"><a href="{{ goods_overview.bad.url }}">{{ goods_overview.bad.name }}</a></div></td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Продаж всего</td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.expensive.purchases.number }} <span>{{ goods_overview.expensive.purchases.digits }} {{ goods_overview.expensive.purchases.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.cheap.purchases.number }} <span>{{ goods_overview.cheap.purchases.digits }} {{ goods_overview.cheap.purchases.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.old.purchases.number }} <span>{{ goods_overview.old.purchases.digits }} {{ goods_overview.old.purchases.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.old.purchases.number }} <span>{{ goods_overview.old.purchases.digits }} {{ goods_overview.old.purchases.units }}</span></div></td>
+                </tr>
+                <tr>
+                    <td>Продаж всего</td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.expensive.turnover.number }} <span>{{ goods_overview.expensive.turnover.digits }} {{ goods_overview.expensive.turnover.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.cheap.turnover.number }} <span>{{ goods_overview.cheap.turnover.digits }} {{ goods_overview.cheap.turnover.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.old.turnover.number }} <span>{{ goods_overview.old.turnover.digits }} {{ goods_overview.old.turnover.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.old.turnover.number }} <span>{{ goods_overview.old.turnover.digits }} {{ goods_overview.old.turnover.units }}</span></div></td>
+                </tr>
+                <tr>
+                    <td>Первый отзыв</td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.expensive.first_review_date }}</div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.cheap.first_review_date }}</div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.old.first_review_date }}</div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ goods_overview.bad.first_review_date }}</div></td>
+                </tr>
+                <tr>
+                    <td>Рейтинг</td>
+                    <td class="table-parameter"><div class="table-parameter-value"><img border="0"  src="images/star2.png" class="star"> {{ goods_overview.expensive.average_rating }}/5</div></td>
+                    <td class="table-parameter"><div class="table-parameter-value"><img border="0"  src="images/star2.png" class="star"> {{ goods_overview.cheap.average_rating }}/5</div></td>
+                    <td class="table-parameter"><div class="table-parameter-value"><img border="0"  src="images/star2.png" class="star"> {{ goods_overview.old.average_rating }}/5</div></td>
+                    <td class="table-parameter"><div class="table-parameter-value"><img border="0"  src="images/star2.png" class="star"> {{ goods_overview.bad.average_rating }}/5</div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="left-footer">
+        {% include 'blocks/copyright.j2' %}
+    </div>
+</div>

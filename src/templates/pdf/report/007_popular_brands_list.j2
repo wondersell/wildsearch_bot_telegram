@@ -1,0 +1,35 @@
+<div class="page">
+    <div class="container">
+        <h2>Популярные бренды</h1>
+
+        <table class="table-data table-medals">
+            <thead>
+                <tr>
+                    <td class="skip-border"></td>
+                    <td class="skip-border"></td>
+                    <td></td>
+                    <td>Товаров в категории</td>
+                    <td>Продаж в мес.</td>
+                    <td>Первый отзыв</td>
+                    <td>Средний рейтинг</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for brand in popular_brands %}
+                <tr>
+                    <td class="skip-border table-data-medal"><img src="images/t{{ loop.index }}.png" alt="{{ loop.index }}" class="table-data-medal"></td>
+                    <td class="skip-border"><a href="{{ brand.url }}"><img border="0"  src="{{ brand.logo }}" border="0" alt title></a></td>
+                    <td><a href="{{ brand.url }}">{{ brand.name }}</a></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ brand.goods.number }} <span>{{ brand.goods.digits }} {{ brand.goods.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ brand.turnover.number }} <span>{{ brand.turnover.digits }} {{ brand.turnover.units }}</span></div></td>
+                    <td class="table-parameter"><div class="table-parameter-value">{{ brand.first_review_date }}</div></td>
+                    <td class="table-parameter"><div class="table-parameter-value"><img border="0"  src="images/star2.png" class="star"> {{ brand.average_rating }}</div></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="left-footer">
+        {% include 'blocks/copyright.j2' %}
+    </div>
+</div>
