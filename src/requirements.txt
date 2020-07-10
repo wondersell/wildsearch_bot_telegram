@@ -17,7 +17,7 @@ celery==4.4.6
 flower==0.9.4
 mongoengine==0.20.0
 redis==3.5.3
-boto3==1.14.7
+boto3==1.14.20
 Jinja2==2.11.2
 WeasyPrint
 
