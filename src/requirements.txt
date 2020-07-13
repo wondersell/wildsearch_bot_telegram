@@ -49,4 +49,4 @@ flake8-quotes==3.2.0
 flake8-todo==0.7
 flake8-annotations-complexity==0.0.5
 flake8-variables-names==0.0.3
-flake8-broken-line==0.2.0
+flake8-broken-line==0.2.1
