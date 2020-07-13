@@ -12,6 +12,7 @@ from seller_stats.utils.formatters import format_currency as fcur
 from seller_stats.utils.formatters import format_number as fnum
 from seller_stats.utils.formatters import format_quantity as fquan
 from seller_stats.utils.loaders import ScrapinghubLoader
+from seller_stats.exceptions import BadDataSet, NotReady
 from telegram import Bot
 
 from .helpers import AmplitudeLogger, category_export, detect_mp_by_job_id
@@ -40,13 +41,25 @@ def get_cat_update_users():
     return list(map(lambda x: x.chat_id, users))
 
 
-@celery.task()
-def calculate_category_stats(job_id, chat_id):
+@celery.task(bind=True, default_retry_delay=10, max_retries=6)
+def calculate_category_stats(self, job_id, chat_id):
     user = user_get_by(chat_id=chat_id)
     slug, marketplace, transformer = detect_mp_by_job_id(job_id=job_id)
+    data = []
 
-    data = ScrapinghubLoader(job_id=job_id, transformer=transformer).load()
-    stats = CategoryStats(data=data)
+    try:
+        data = ScrapinghubLoader(job_id=job_id, transformer=transformer).load()
+    except NotReady as error_info:
+        logger.error(f'Job {job_id} is not finished yet, placing new task')
+        self.retry(error_info)
+
+    try:
+        stats = CategoryStats(data=data)
+    except BadDataSet:
+        bot.send_message(chat_id=chat_id, text='Категория оказалась пустой, её нельзя проанализировать',
+                         parse_mode='Markdown', disable_web_page_preview=True)
+        logger.error(f'Job {job_id} returned empty category')
+        return
 
     message = generate_category_stats_message(stats=stats)
     bot.send_message(chat_id=chat_id, text=message, parse_mode='Markdown', disable_web_page_preview=True)

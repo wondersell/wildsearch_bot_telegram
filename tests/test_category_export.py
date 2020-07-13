@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from freezegun import freeze_time
+from celery.exceptions import Retry
 
 from src.helpers import category_export, init_scrapinghub, scheduled_jobs_count
 from src.models import log_command
@@ -29,6 +30,7 @@ def set_scrapinghub_requests_mock(requests_mock, sample_category_data_raw):
         requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=running&spider=wb', text=f'{running_count}')
         requests_mock.post('https://app.scrapinghub.com/api/run.json', json={'status': 'ok', 'jobid': f'{job_id}'})
         requests_mock.get(f'https://storage.scrapinghub.com/items/{job_id}?meta=_key', content=sample_category_data_raw(spider=spider), headers={'Content-Type': 'application/x-msgpack; charset=UTF-8'})
+        requests_mock.get(f'https://storage.scrapinghub.com/jobs/{job_id}/state', text='"finished"')
 
     return _set_scrapinghub_requests_mock
 
@@ -118,6 +120,26 @@ def test_category_export_task_sends_message(mocked_send_message, mocked_send_doc
     mocked_send_message.assert_called()
     mocked_send_document.assert_called()
     mocked_send_category_requests_count_message.assert_called()
+
+
+@patch('telegram.Bot.send_message')
+def test_category_export_task_not_finished(mocked_send_message, set_scrapinghub_requests_mock, bot_user, requests_mock):
+    requests_mock.get('https://storage.scrapinghub.com/jobs/414324/1/926/state', text='"running"')
+
+    with pytest.raises(Retry):
+        calculate_category_stats('414324/1/926', bot_user.chat_id)
+        mocked_send_message.assert_not_called()
+
+
+@patch('telegram.Bot.send_message')
+def test_category_export_task_empty_category(mocked_send_message, set_scrapinghub_requests_mock, bot_user, current_path, requests_mock):
+    set_scrapinghub_requests_mock(job_id='414324/1/926')
+    requests_mock.get('https://storage.scrapinghub.com/items/414324/1/926?meta=_key', content=open(current_path + f'/mocks/scrapinghub_items_wb_empty.msgpack', 'rb').read(), headers={'Content-Type': 'application/x-msgpack; charset=UTF-8'})
+
+    calculate_category_stats('414324/1/926', bot_user.chat_id)
+
+    mocked_send_message.assert_called()
+    assert 'Категория оказалась пустой' in mocked_send_message.call_args.kwargs['text']
 
 
 @pytest.mark.parametrize('job_id, expected_marketplace', [
