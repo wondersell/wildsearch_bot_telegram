@@ -2,8 +2,8 @@ import re
 from unittest.mock import patch
 
 import pytest
-from freezegun import freeze_time
 from celery.exceptions import Retry
+from freezegun import freeze_time
 
 from src.helpers import category_export, init_scrapinghub, scheduled_jobs_count
 from src.models import log_command
@@ -134,7 +134,7 @@ def test_category_export_task_not_finished(mocked_send_message, set_scrapinghub_
 @patch('telegram.Bot.send_message')
 def test_category_export_task_empty_category(mocked_send_message, set_scrapinghub_requests_mock, bot_user, current_path, requests_mock):
     set_scrapinghub_requests_mock(job_id='414324/1/926')
-    requests_mock.get('https://storage.scrapinghub.com/items/414324/1/926?meta=_key', content=open(current_path + f'/mocks/scrapinghub_items_wb_empty.msgpack', 'rb').read(), headers={'Content-Type': 'application/x-msgpack; charset=UTF-8'})
+    requests_mock.get('https://storage.scrapinghub.com/items/414324/1/926?meta=_key', content=open(current_path + '/mocks/scrapinghub_items_wb_empty.msgpack', 'rb').read(), headers={'Content-Type': 'application/x-msgpack; charset=UTF-8'})
 
     calculate_category_stats('414324/1/926', bot_user.chat_id)
 

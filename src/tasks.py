@@ -8,11 +8,11 @@ import pandas as pd
 from celery import Celery
 from envparse import env
 from seller_stats.category_stats import CategoryStats, calc_sales_distribution
+from seller_stats.exceptions import BadDataSet, NotReady
 from seller_stats.utils.formatters import format_currency as fcur
 from seller_stats.utils.formatters import format_number as fnum
 from seller_stats.utils.formatters import format_quantity as fquan
 from seller_stats.utils.loaders import ScrapinghubLoader
-from seller_stats.exceptions import BadDataSet, NotReady
 from telegram import Bot
 
 from .helpers import AmplitudeLogger, category_export, detect_mp_by_job_id
