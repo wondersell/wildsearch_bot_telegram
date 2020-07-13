@@ -27,6 +27,7 @@ def process_command(name, user, text=''):
         'Sent command "No limits"': 'help_no_limits',
         'Sent unknown command': 'help_command_not_found',
         'Sent command "WB catalog"': 'wb_catalog',
+        'Sent not supported marketplace command': 'help_marketplace_not_supported',
     }
 
     log_item = log_command(user, slug_list[name], text)
@@ -123,6 +124,19 @@ def help_command_not_found(update: Update, context: CallbackContext):
     )
 
 
+def help_marketplace_not_supported(update: Update, context: CallbackContext):
+    user = user_get_by_update(update)
+    process_command(name='Sent not supported marketplace command', user=user, text=update.message.text)
+
+    context.bot.send_message(
+        chat_id=user.chat_id,
+        text='⚠️🤷 Сейчас бот может анализировать только ссылки на каталоги Wildberries, другие площадки пока не поддерживаются',
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton('💁‍️ Как правильно указать категорию?', callback_data='keyboard_help_catalog_link')],
+        ]),
+    )
+
+
 def wb_catalog(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
     log_item = process_command(name='Sent command "WB catalog"', user=user, text=update.message.text)
@@ -158,6 +172,8 @@ def start_bot(bot):
     dp.add_handler(CallbackQueryHandler(help_catalog_link, pattern='keyboard_help_catalog_link'))
     dp.add_handler(CallbackQueryHandler(help_feedback, pattern='keyboard_help_info_feedback'))
 
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'(ozon\.ru|beru\.ru|goods\.ru|tmall\.ru|lamoda\.ru)/'), help_marketplace_not_supported))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/.*/detail\.aspx'), help_command_not_found))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/brands/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/promotions/'), wb_catalog))

@@ -19,6 +19,23 @@ def test_command_catalog(mocked_celery_delay, web_app, telegram_json_message, me
     mocked_celery_delay.assert_called()
 
 
+@pytest.mark.parametrize('message, expected_text', [
+    ['https://www.ozon.ru/category/elektronika-15500/', 'пока не поддерживаются'],
+    ['https://beru.ru/catalog/vytiazhki/80444/list?hid=90581', 'пока не поддерживаются'],
+    ['https://goods.ru/catalog/avtosvet/', 'пока не поддерживаются'],
+    ['https://www.lamoda.ru/c/21/shoes-sapogi/?sitelink=topmenuW&l=5', 'пока не поддерживаются'],
+    ['https://tmall.ru/ru/__pc/pages/sda_appliances.htm', 'пока не поддерживаются'],
+    ['https://www.wildberries.ru/catalog/12365745/detail.aspx?targetUrl=GP', 'указали неправильную команду'],
+])
+@patch('telegram.Bot.send_message')
+def test_wrong_catalog_commands(mocked_bot_send_message, message, expected_text, web_app, telegram_json_message):
+    telegram_json = telegram_json_message(message=str(message))
+
+    web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
+
+    assert expected_text in mocked_bot_send_message.call_args.kwargs['text']
+
+
 @patch('src.tasks.schedule_category_export.apply_async')
 @patch('telegram.Bot.send_message')
 def test_command_catalog_throttled_wb(mocked_bot_send_message, mocked_celery_delay, web_app, telegram_json_message, create_telegram_command_logs):
