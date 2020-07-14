@@ -56,7 +56,7 @@ def calculate_category_stats(self, job_id, chat_id):
     try:
         stats = CategoryStats(data=data)
     except BadDataSet:
-        bot.send_message(chat_id=chat_id, text='Категория оказалась пустой, её нельзя проанализировать',
+        bot.send_message(chat_id=chat_id, text='❌ Мы не смогли обработать ссылку. Скорее всего, вы указали неправильную страницу, либо категория оказалась пустой.',
                          parse_mode='Markdown', disable_web_page_preview=True)
         logger.error(f'Job {job_id} returned empty category')
         return
