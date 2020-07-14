@@ -139,7 +139,7 @@ def test_category_export_task_empty_category(mocked_send_message, set_scrapinghu
     calculate_category_stats('414324/1/926', bot_user.chat_id)
 
     mocked_send_message.assert_called()
-    assert 'Категория оказалась пустой' in mocked_send_message.call_args.kwargs['text']
+    assert 'Мы не смогли обработать ссылку' in mocked_send_message.call_args.kwargs['text']
 
 
 @pytest.mark.parametrize('job_id, expected_marketplace', [
