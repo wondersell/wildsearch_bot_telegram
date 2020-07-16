@@ -11,6 +11,7 @@ services:
       #- ../seller-stats:/seller-stats:delegated
     env_file:
       - ./.env
+      - ./.env.docker
     links:
       - mongo
     ports:
@@ -31,6 +32,7 @@ services:
       - C_FORCE_ROOT=on
     env_file:
       - ./.env
+      - ./.env.docker
     links:
       - redis
       - mongo
@@ -48,6 +50,7 @@ services:
       - redis
     env_file:
       - ./.env
+      - ./.env.docker
     ports:
       - 5555:5555
 

@@ -51,7 +51,7 @@ def calculate_category_stats(self, job_id, chat_id):
         data = ScrapinghubLoader(job_id=job_id, transformer=transformer).load()
     except NotReady as error_info:
         logger.error(f'Job {job_id} is not finished yet, placing new task')
-        self.retry(error_info)
+        self.retry()
 
     try:
         stats = CategoryStats(data=data)
