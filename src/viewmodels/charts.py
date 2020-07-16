@@ -55,7 +55,7 @@ class IntervalBarChart(BarChart):
 
         med_interval = self._df.iloc[2].bin
         med_interval_divider = get_digits_divider(med_interval.left)
-        med_interval_digits = get_digits_text(med_interval.left)
+        med_interval_digits = get_digits_text(med_interval.left, skip_thousands=False)
 
         for row in self._df.itertuples(index=False):
             calculated_height = row[1] / self._max_row_value * 100
