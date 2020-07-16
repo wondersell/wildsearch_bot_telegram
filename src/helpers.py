@@ -228,7 +228,7 @@ def smart_format_round_super_hard(number: Union[int, float]) -> (int, int):
 
 def smart_format_prettify(number):
     number = int(number) if float(round(number, 2)) % 1 == 0 else round(float(number), 2)
-    number = '{:,}'.format(number).replace(',', ' ').replace('.', ',')
+    number = '{:,}'.format(number).replace(',', '\u00A0').replace('.', ',')
 
     return number
 
