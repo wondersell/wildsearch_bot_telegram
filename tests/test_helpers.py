@@ -86,8 +86,8 @@ def test_detect_mp_by_job_id(job_id, expected):
     [5, ('5', '')],
     [82, ('80', '')],
     [133, ('130', '')],
-    [1432, ('1 400', '')],
-    [5899, ('5 900', '')],
+    [1432, ('1\u00A0400', '')],
+    [5899, ('5\u00A0900', '')],
     [45037, ('45', 'тыс.')],
     [79637, ('80', 'тыс.')],
     [498177, ('498', 'тыс.')],
@@ -100,7 +100,7 @@ def test_detect_mp_by_job_id(job_id, expected):
     [6471309583998, ['6,5', 'трлн.']],
     [22489066284578, ['22,5', 'трлн.']],
     [982578123334900, ['983', 'трлн.']],
-    [3985300123427720, ['3 985 300 123 427 720', '']],
+    [3985300123427720, ['3\u00A0985\u00A0300\u00A0123\u00A0427\u00A0720', '']],
 ])
 def test_smart_format_number(test_number, expected):
     number, digits = smart_format_number(test_number)
@@ -154,10 +154,10 @@ def test_get_digits_text_not_skip_thousends(test_number, expected):
 
 
 @pytest.mark.parametrize('test_number, expected', [
-    [413241514, '413 241 514'],
+    [413241514, '413\u00A0241\u00A0514'],
     [34, '34'],
     [68.86623, '68,87'],
-    [141341.3876, '141 341,39'],
+    [141341.3876, '141\u00A0341,39'],
 ])
 def test_smart_format_prettify(test_number, expected):
     assert smart_format_prettify(test_number) == expected
