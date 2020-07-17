@@ -1,11 +1,12 @@
+import datetime
 import logging
 import os
 import tempfile
 import time
-import datetime
 
 import boto3
 import pandas as pd
+from airtable import Airtable
 from celery import Celery
 from envparse import env
 from seller_stats.category_stats import CategoryStats, calc_sales_distribution
@@ -15,7 +16,6 @@ from seller_stats.utils.formatters import format_number as fnum
 from seller_stats.utils.formatters import format_quantity as fquan
 from seller_stats.utils.loaders import ScrapinghubLoader
 from telegram import Bot
-from airtable import Airtable
 
 from .helpers import AmplitudeLogger, category_export, detect_mp_by_job_id
 from .models import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
