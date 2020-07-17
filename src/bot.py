@@ -38,6 +38,9 @@ def process_command(name, user, text=''):
 
 def help_start(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
+
+    tasks.add_user_to_crm(user.chat_id)
+
     process_command(name='Started bot', user=user)
 
     context.bot.send_message(

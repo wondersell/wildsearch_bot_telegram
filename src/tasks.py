@@ -2,6 +2,7 @@ import logging
 import os
 import tempfile
 import time
+import datetime
 
 import boto3
 import pandas as pd
@@ -14,6 +15,7 @@ from seller_stats.utils.formatters import format_number as fnum
 from seller_stats.utils.formatters import format_quantity as fquan
 from seller_stats.utils.loaders import ScrapinghubLoader
 from telegram import Bot
+from airtable import Airtable
 
 from .helpers import AmplitudeLogger, category_export, detect_mp_by_job_id
 from .models import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
@@ -203,3 +205,20 @@ def generate_category_stats_report_file(stats, username='%username%'):
     logger.info(f'PDF report generated in {time.time() - start_time}s, {os.path.getsize(temp_file.name)} bytes')
 
     return temp_file
+
+
+def add_user_to_crm(chat_id):
+    if env('AIRTABLE_API_KEY', None) is not None:
+        logger.info('Saving new user to CRM')
+
+        user = user_get_by(chat_id=chat_id)
+
+        logger.info(f"created_at is {user.created_at.replace(tzinfo=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')}")
+
+        airtable = Airtable(env('AIRTABLE_BASE_KEY'), env('AIRTABLE_CRM_TABLE'), api_key=env('AIRTABLE_API_KEY'))
+        airtable.insert({
+            'Имя': user.full_name,
+            'Юзернейм': user.user_name,
+            'ID чата': user.chat_id,
+            'Зарегистрирован': user.created_at.replace(tzinfo=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+        })
