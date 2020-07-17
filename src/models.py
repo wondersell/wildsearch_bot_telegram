@@ -53,7 +53,7 @@ class User(Document):
     chat_id = IntField(required=True, primary_key=True)
     user_name = StringField()
     full_name = StringField()
-    daily_catalog_requests_limit = IntField(default=5)
+    daily_catalog_requests_limit = IntField(default=int(env('SETTINGS_FREE_DAILY_REQUESTS', 5)))
     catalog_requests_blocked = BooleanField(default=False)
     subscribe_to_wb_categories_updates = BooleanField(default=False)
     created_at = DateTimeField()
@@ -89,7 +89,7 @@ class User(Document):
         oldest_request = LogCommandItem.objects(
             user=self.id,
             command='wb_catalog',
-        ).order_by('+created_at').limit(5).first()
+        ).order_by('+created_at').limit(self.daily_catalog_requests_limit).first()
 
         return oldest_request['created_at'] + timedelta(hours=24)
 
