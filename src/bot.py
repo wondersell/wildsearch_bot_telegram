@@ -86,7 +86,7 @@ def help_info(update: Update, context: CallbackContext):
         text='📊 Этот телеграм бот поможет собирать данные о товарах на Wildberries и анализировать их.\n\n📲 Отправьте ссылку на интересующую категорию Wildberries, чтобы получить сводную информацию по ней.\n\n📑 Также вы получите персональый PDF отчет с подробной информацией о категории.',
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton('💁‍️ Как правильно указать категорию?', callback_data='keyboard_help_catalog_link')],
-            [InlineKeyboardButton('👨‍🚀 Написать в поддержку', callback_data='keyboard_help_info_feedback')],
+            [InlineKeyboardButton('👨‍🚀 Написать в поддержку', url='https://t.me/wildsearch_support_bot')],
         ]),
     )
 
@@ -109,7 +109,7 @@ def help_no_limits(update: Update, context: CallbackContext):
         chat_id=user.chat_id,
         text='Если вы хотите увеличить или снять лимит запросов напишите нам в чат поддержки запрос с фразой «Снимите лимит запросов».',
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton('👨‍🚀 Написать в поддержку', callback_data='keyboard_help_info_feedback')],
+            [InlineKeyboardButton('👨‍🚀 Написать в поддержку', url='https://t.me/wildsearch_support_bot')],
         ]),
     )
 
