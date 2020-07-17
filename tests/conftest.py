@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from os import environ
 from unittest.mock import patch
 
@@ -152,6 +153,7 @@ def requests_mocker():
     """
     with requests_mock.Mocker() as m:
         m.post('https://api.amplitude.com/2/httpapi', json={'code': 200})
+        m.post(re.compile('https://api.airtable.com/v0/'), json={'code': 200})
         yield m
 
 

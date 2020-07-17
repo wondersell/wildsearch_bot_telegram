@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import tempfile
@@ -5,6 +6,7 @@ import time
 
 import boto3
 import pandas as pd
+from airtable import Airtable
 from celery import Celery
 from envparse import env
 from seller_stats.category_stats import CategoryStats, calc_sales_distribution
@@ -203,3 +205,20 @@ def generate_category_stats_report_file(stats, username='%username%'):
     logger.info(f'PDF report generated in {time.time() - start_time}s, {os.path.getsize(temp_file.name)} bytes')
 
     return temp_file
+
+
+def add_user_to_crm(chat_id):
+    if env('AIRTABLE_API_KEY', None) is not None:
+        logger.info('Saving new user to CRM')
+
+        user = user_get_by(chat_id=chat_id)
+
+        logger.info(f"created_at is {user.created_at.replace(tzinfo=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')}")
+
+        airtable = Airtable(env('AIRTABLE_BASE_KEY'), env('AIRTABLE_CRM_TABLE'), api_key=env('AIRTABLE_API_KEY'))
+        airtable.insert({
+            'Имя': user.full_name,
+            'Юзернейм': user.user_name,
+            'ID чата': user.chat_id,
+            'Зарегистрирован': user.created_at.replace(tzinfo=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z'),
+        })
