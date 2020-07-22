@@ -76,6 +76,7 @@ def calculate_category_stats(self, job_id, chat_id):
         bot.send_document(
             chat_id=chat_id,
             document=export_file,
+            caption='Файл с отчетом',
             filename=f'{stats.category_name()} на {marketplace}.{file_extension}',
         )
     except Exception as exception_info:
@@ -154,14 +155,10 @@ def generate_category_stats_message(stats):
     df = stats.df
 
     return f"""
-[{stats.category_name()}]({stats.category_url()})
+Ваш PDF-отчет по категории [{stats.category_name()}]({stats.category_url()}) находится в следующем сообщении.
 
+Краткая сводка:
 Количество товаров: `{fnum(df.sku.sum())}`
-
-Самый дорогой: {fcur(df.price.max())}
-Самый дешевый: {fcur(df.price.min())}
-Средняя цена: {fcur(df.price.mean())}
-
 Продаж всего: {fquan(df.purchases.sum())} (на {fcur(df.turnover.sum())})
 В среднем продаются по: {fquan(df.purchases.mean())} (на {fcur(df.turnover.mean())})
 Медиана продаж: {fquan(df.purchases.median())} (на {fcur(df.turnover.median())})
