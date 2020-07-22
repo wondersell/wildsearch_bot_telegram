@@ -106,9 +106,6 @@ def test_category_export_task_sends_message(mocked_send_message, mocked_send_doc
 
     required_stats = [
         'Количество товаров',
-        'Самый дорогой',
-        'Самый дешевый',
-        'Средняя цена',
         'Продаж всего',
         'В среднем продаются по',
         'Медиана продаж',
