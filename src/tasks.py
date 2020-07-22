@@ -29,6 +29,7 @@ celery.conf.update(
     task_serializer='pickle',  # we transfer binary data like photos or voice messages,
     accept_content=['pickle'],
     redis_max_connections=env('CELERY_REDIS_MAX_CONNECTIONS', default=None),
+    broker_transport_options={'visibility_timeout': 3600 * 48},
 )
 
 # включаем логи
@@ -121,11 +122,12 @@ def check_requests_count_recovered(chat_id: int):
 
     if user.catalog_requests_left_count() == user.daily_catalog_requests_limit:
         # here we are limiting the maximum number of emojis to 10
-        # emoji = ''.join(map(lambda x: '🌕', range(min(user.daily_catalog_requests_limit, 10))))
-        # message = f'🤘 Рок-н-ролл! Вам доступно {user.daily_catalog_requests_limit} новых запросов категорий Wildberries для анализа.\n{emoji}'
-        # bot.send_message(chat_id=chat_id, text=message)
+        emoji = ''.join(map(lambda x: '🌕', range(min(user.daily_catalog_requests_limit, 10))))
+        message = f'🤘 Рок-н-ролл! Вам доступно {user.daily_catalog_requests_limit} новых запросов категорий Wildberries для анализа.\n{emoji}'
+        bot.send_message(chat_id=chat_id, text=message)
 
-        logger.info('Placeholder for sending recovered requests messages called')
+        track_amplitude.delay(chat_id=chat_id, event='Received "Recovered requests" message')
+        logger.info('Recovered requests messages called')
 
 
 @celery.task()
