@@ -153,7 +153,7 @@ def test_category_export_task_sends_correct_filenames(mocked_send_message, mocke
 
 
 @patch('telegram.Bot.send_message')
-def test_check_requests_count_recovered_fully(mocked_send_message, bot_user, create_telegram_command_logs):
+def _test_check_requests_count_recovered_fully(mocked_send_message, bot_user, create_telegram_command_logs):
     bot_user.save()
 
     with freeze_time('2030-06-15 01:20:00'):
