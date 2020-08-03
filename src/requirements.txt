@@ -3,7 +3,7 @@ falcon==2.0.0
 seller-stats==0.3.0
 
 scrapinghub==2.3.1
-sentry-sdk==0.16.1
+sentry-sdk==0.16.3
 
 openpyxl==3.0.4
 PyYAML==5.3.1
