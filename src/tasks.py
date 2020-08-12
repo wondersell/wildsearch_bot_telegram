@@ -30,6 +30,7 @@ celery.conf.update(
     accept_content=['pickle'],
     redis_max_connections=env('CELERY_REDIS_MAX_CONNECTIONS', default=None),
     broker_transport_options={'visibility_timeout': 3600 * 48},
+    timezone=env('TIME_ZONE', cast=str, default='Europe/Moscow'),
 )
 
 # включаем логи
