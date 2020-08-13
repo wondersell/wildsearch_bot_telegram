@@ -17,7 +17,7 @@ celery==4.4.7
 flower==0.9.5
 mongoengine==0.20.0
 redis==3.5.3
-boto3==1.14.23
+boto3==1.14.38
 Jinja2==2.11.2
 WeasyPrint
 airtable-python-wrapper==0.13.0
