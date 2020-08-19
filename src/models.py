@@ -24,21 +24,21 @@ def user_get_by_update(update: Update):
     if matched.count():
         user = matched.first()
 
-        if user.user_name != message.from_user.username:
-            user.user_name = message.from_user.username
+        if user.user_name != message.chat.username:
+            user.user_name = message.chat.username
             user.save()
 
         return user
 
     full_name = ''
-    if message.from_user.first_name:
-        full_name += message.from_user.first_name
+    if message.chat.first_name:
+        full_name += message.chat.first_name
     if message.from_user.last_name:
-        full_name += ' ' + message.from_user.last_name
+        full_name += ' ' + message.chat.last_name
 
     return User(
         chat_id=message.chat_id,
-        user_name=message.from_user.username,
+        user_name=message.chat.username,
         full_name=full_name,
     ).save()
 
