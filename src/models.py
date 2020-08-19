@@ -22,7 +22,13 @@ def user_get_by_update(update: Update):
     matched = User.objects(chat_id=message.chat.id)
 
     if matched.count():
-        return matched.first()
+        user = matched.first()
+
+        if user.user_name != message.from_user.username:
+            user.user_name = message.from_user.username
+            user.save()
+
+        return user
 
     full_name = ''
     if message.from_user.first_name:
