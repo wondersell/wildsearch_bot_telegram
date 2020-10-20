@@ -4,11 +4,11 @@ seller-stats==0.3.0
 click==7.1.2
 
 scrapinghub==2.3.1
-sentry-sdk==0.16.5
+sentry-sdk==0.18.0
 
-openpyxl==3.0.4
+openpyxl==3.0.5
 PyYAML==5.3.1
-pandas==1.1.0
+pandas==1.1.3
 envparse==0.2.0
 msgpack==1.0.0
 json_log_formatter==0.3.0
@@ -18,23 +18,23 @@ celery==4.4.7
 flower==0.9.5
 mongoengine==0.20.0
 redis==3.5.3
-boto3==1.14.43
+boto3==1.15.11
 Jinja2==2.11.2
 WeasyPrint
 airtable-python-wrapper==0.15.0
 
-pytest==6.0.1
+pytest==6.1.1
 pytest-cov==2.10.1
 mixer==6.1.3
-coverage==5.2.1
-codecov==2.1.8
-freezegun==0.3.15
+coverage==5.3
+codecov==2.1.9
+freezegun==1.0.0
 mongomock==3.20.0
-Faker==4.1.1
+Faker==4.8.0
 requests_mock==1.8.0
 
 typing==3.7.4.3
-typing-extensions==3.7.4.2
+typing-extensions==3.7.4.3
 
 flake8==3.8.3
 flake8-bugbear==20.1.4
