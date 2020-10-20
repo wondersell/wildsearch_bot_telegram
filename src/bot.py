@@ -28,6 +28,7 @@ def process_command(name, user, text=''):
         'Sent unknown command': 'help_command_not_found',
         'Sent command "WB catalog"': 'wb_catalog',
         'Sent not supported marketplace command': 'help_marketplace_not_supported',
+        'Sent command on maintenance mode': 'help_maintenance_mode',
     }
 
     log_item = log_command(user, slug_list[name], text)
@@ -140,6 +141,15 @@ def help_marketplace_not_supported(update: Update, context: CallbackContext):
     )
 
 
+def help_maintenance_mode(update: Update, context: CallbackContext):
+    user = user_get_by_update(update)
+    process_command(name='Sent command on maintenance mode', user=user, text=update.message.text)
+
+    context.bot.send_message(
+        chat_id=user.chat_id,
+        text='🧩 Наш сервис обновляется. Мы обновляем сервис и не можем обработать ваш запрос. Как только обновление будет готово мы сразу же оповестим вас.',
+    )
+
 def wb_catalog(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
     log_item = process_command(name='Sent command "WB catalog"', user=user, text=update.message.text)
@@ -177,7 +187,7 @@ def start_bot(bot):
 
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'(ozon\.ru|beru\.ru|goods\.ru|tmall\.ru|lamoda\.ru)/'), help_marketplace_not_supported))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/.*/detail\.aspx'), help_command_not_found))
-    dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/'), wb_catalog))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/'), help_maintenance_mode))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/brands/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/promotions/'), wb_catalog))
 
