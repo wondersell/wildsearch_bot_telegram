@@ -22,9 +22,9 @@ def main(text, chat_ids):
         try:
             bot.send_message(chat_id=chat_id, text=text, parse_mode='Markdown', disable_web_page_preview=True)
 
-            print(f'Sending message to chat {chat_id} success')
+            print(f'Sending message to chat {chat_id} success')  # noqa: T001
         except Exception as error:
-            print(f'Sending message to chat {chat_id} failed: {str(error)}')
+            print(f'Sending message to chat {chat_id} failed: {str(error)}')  # noqa: T001
 
 
 if __name__ == '__main__':

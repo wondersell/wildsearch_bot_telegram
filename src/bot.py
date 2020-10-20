@@ -150,6 +150,7 @@ def help_maintenance_mode(update: Update, context: CallbackContext):
         text='🧩 Наш сервис обновляется. Мы обновляем сервис и не можем обработать ваш запрос. Как только обновление будет готово мы сразу же оповестим вас.',
     )
 
+
 def wb_catalog(update: Update, context: CallbackContext):
     user = user_get_by_update(update)
     log_item = process_command(name='Sent command "WB catalog"', user=user, text=update.message.text)
