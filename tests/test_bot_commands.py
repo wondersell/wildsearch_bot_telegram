@@ -5,18 +5,29 @@ from envparse import env
 
 
 @pytest.mark.parametrize('message', [
-    ['https://www.wildberries.ru/catalog/dom-i-dacha/tovary-dlya-remonta/instrumenty/magnitnye-instrumenty'],
     ['https://www.wildberries.ru/brands/la-belle-femme'],
-    ['https://www.wildberries.ru/catalog/0/search.aspx?subject=99&search=сапоги&sort=popular'],
     ['https://www.wildberries.ru/promotions/eeh-mix-uhod-i-parfyumeriya'],
 ])
 @patch('src.tasks.schedule_category_export.apply_async')
-def test_command_catalog(mocked_celery_delay, web_app, telegram_json_message, message):
+def test_command_catalog_correct(mocked_celery_delay, web_app, telegram_json_message, message):
     telegram_json = telegram_json_message(message=str(message))
 
     web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
 
     mocked_celery_delay.assert_called()
+
+
+@pytest.mark.parametrize('message', [
+    ['https://www.wildberries.ru/catalog/dom-i-dacha/tovary-dlya-remonta/instrumenty/magnitnye-instrumenty'],
+    ['https://www.wildberries.ru/catalog/0/search.aspx?subject=99&search=сапоги&sort=popular'],
+])
+@patch('telegram.Bot.send_message')
+def test_command_catalog_maintenance(mocked_bot_send_message, web_app, telegram_json_message, message):
+    telegram_json = telegram_json_message(message=str(message))
+
+    web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
+
+    assert 'Наш сервис обновляется' in mocked_bot_send_message.call_args.kwargs['text']
 
 
 @pytest.mark.parametrize('message, expected_text', [
@@ -44,7 +55,7 @@ def test_command_catalog_throttled_wb(mocked_bot_send_message, mocked_celery_del
 
     web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
 
-    assert 'лимит запросов закончился' in mocked_bot_send_message.call_args.kwargs['text']
+    assert 'Наш сервис обновляется' in mocked_bot_send_message.call_args.kwargs['text']
 
 
 @pytest.mark.parametrize('message_text, expected_text', [
