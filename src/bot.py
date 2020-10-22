@@ -188,7 +188,7 @@ def start_bot(bot):
 
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'(ozon\.ru|beru\.ru|goods\.ru|tmall\.ru|lamoda\.ru)/'), help_marketplace_not_supported))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/.*/detail\.aspx'), help_command_not_found))
-    dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/'), help_maintenance_mode))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/brands/'), wb_catalog))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/promotions/'), wb_catalog))
 
