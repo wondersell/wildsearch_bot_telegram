@@ -156,16 +156,6 @@ class Report(BaseViewModel):
         return IntervalBarChart(df, x_axis='Цена', y_axis='Оборот').to_dict()
 
     @property
-    def brand_countries_chart(self):
-        df = self.stats.df.loc[:, ['brand_country', 'sku']].groupby(by='brand_country').sum().sort_values(by='sku', ascending=False).reset_index()
-        df = df.loc[0:4, ].append(pd.DataFrame([{'brand_country': 'Другое', 'sku': df.loc[5:, ].sku.sum()}]))
-        df['bin'] = df['brand_country']
-        df['val'] = df['sku']
-        df = df.replace('Соединенные Штаты', 'США')
-
-        return FlagsBarChart(df, x_axis='Страна', y_axis='Количество артикулов', detect_countries=True).to_dict()
-
-    @property
     def production_countries_chart(self):
         df = self.stats.df.loc[:, ['manufacture_country', 'sku']].groupby(by='manufacture_country').sum().sort_values(by='sku', ascending=False).reset_index()
         df = df.loc[0:4, ].append(pd.DataFrame([{'manufacture_country': 'Другое', 'sku': df.loc[5:, ].sku.sum()}]))
