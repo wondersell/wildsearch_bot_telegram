@@ -19,6 +19,7 @@ services:
     depends_on:
       - worker
       - mongo
+      - postgres
 
   worker:
     build: ./src
@@ -39,6 +40,7 @@ services:
     depends_on:
       - mongo
       - redis
+      - postgres
 
   flower:
     build: ./src
@@ -70,6 +72,16 @@ services:
       - mongo:/data/db
       - ./infra/mongodb/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
+  postgres:
+    image: postgres
+    env_file:
+      - ./.env
+      - ./.env.docker
+    volumes:
+      - database-data:/var/lib/postgresql/data/ # persist data even if container shuts down
+    ports:
+      - 5432:5432
+
   # Зачем в этой схеме нужен Nginx я пока не решил
   #nginx:
   #  image: nginx:1.13-alpine
@@ -82,3 +94,4 @@ services:
 
 volumes:
   mongo: {}
+  database-data: # named volumes can be managed easier using docker-compose

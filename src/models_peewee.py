@@ -62,6 +62,9 @@ class User(pw.Model):
 
         return super(User, self).save(*args, **kwargs)
 
+    class Meta:
+        database = db
+
 
 class LogCommandItem(pw.Model):
     user = pw.ForeignKeyField(User, index=True)
@@ -81,6 +84,9 @@ class LogCommandItem(pw.Model):
             self.created_at = datetime.now()
 
         return super(LogCommandItem, self).save(*args, **kwargs)
+
+    class Meta:
+        database = db
 
 
 def user_get_by(*args, **kwargs):
