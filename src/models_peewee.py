@@ -1,0 +1,127 @@
+from datetime import datetime, timedelta
+
+import peewee as pw
+from envparse import env
+from playhouse.db_url import connect
+from telegram import Update
+
+env.read_envfile()
+db = connect(env('DATABASE_URL', cast=str, default='sqlite:///db.sqlite'))
+
+
+class User(pw.Model):
+    chat_id = pw.IntegerField(index=True, unique=True)
+    user_name = pw.CharField(index=True, null=True)
+    full_name = pw.CharField(index=True, null=True)
+    daily_catalog_requests_limit = pw.IntegerField(default=int(env('SETTINGS_FREE_DAILY_REQUESTS', 5)))
+    catalog_requests_blocked = pw.BooleanField(default=False, index=True)
+    subscribe_to_wb_categories_updates = pw.BooleanField(default=False, index=True)
+    created_at = pw.DateTimeField(default=datetime.now(), index=True)
+    updated_at = pw.DateTimeField(index=True)
+
+    def can_send_more_catalog_requests(self) -> bool:
+        """Throttling here."""
+        if self.catalog_requests_blocked is True:
+            return False
+
+        if self.today_catalog_requests_count() >= self.daily_catalog_requests_limit:
+            return False
+
+        return True
+
+    def today_catalog_requests_count(self) -> int:
+        """Get catalog requests count based on requests log."""
+        time_from = datetime.now() - timedelta(hours=24)
+
+        return LogCommandItem.select().where(
+            LogCommandItem.user == self.id,
+            LogCommandItem.command == 'wb_catalog',
+            LogCommandItem.status == 'success',
+            LogCommandItem.created_at >= time_from).count()
+
+    def catalog_requests_left_count(self) -> int:
+        return self.daily_catalog_requests_limit - self.today_catalog_requests_count()
+
+    def next_free_catalog_request_time(self) -> datetime:
+        if self.today_catalog_requests_count() < self.daily_catalog_requests_limit:
+            return datetime.now()
+
+        oldest_request = LogCommandItem.select().where(
+            LogCommandItem.user == self.id,
+            LogCommandItem.command == 'wb_catalog',
+        ).order_by(LogCommandItem.created_at).limit(self.daily_catalog_requests_limit).first()
+
+        return oldest_request.created_at + timedelta(hours=24)
+
+    def save(self, *args, **kwargs):
+        self.updated_at = datetime.now()
+
+        return super(User, self).save(*args, **kwargs)
+
+
+class LogCommandItem(pw.Model):
+    user = pw.ForeignKeyField(User, index=True)
+    command = pw.CharField(index=True, null=True)
+    message = pw.CharField(null=True)
+    status = pw.CharField(null=True)
+    created_at = pw.DateTimeField(default=datetime.now(), index=True)
+
+    def set_status(self, status):
+        self.status = status
+        self.save()
+        return self
+
+
+def user_get_by(*args, **kwargs):
+    return User.get(*args, **kwargs)
+
+
+def user_get_by_update(update: Update):
+    if update.message:
+        message = update.message
+    else:
+        message = update.callback_query.message
+
+    try:
+        user = User.get(User.chat_id == message.chat.id)
+
+        if user.user_name != message.chat.username:
+            user.user_name = message.chat.username
+            user.save()
+
+    except pw.DoesNotExist:
+        full_name = ''
+        if message.chat.first_name:
+            full_name += message.chat.first_name
+        if message.from_user.last_name:
+            full_name += ' ' + message.chat.last_name
+
+        user = User(
+            chat_id=message.chat_id,
+            user_name=message.chat.username,
+            full_name=full_name,
+        )
+
+        user.save()
+
+    return user
+
+
+def log_command(user, command: str, message: str = ''):
+    command = LogCommandItem(
+        user=user,
+        command=command,
+        message=message,
+    )
+
+    command.save()
+
+    return command
+
+
+def get_subscribed_to_wb_categories_updates() -> []:
+    return User.select().where(User.subscribe_to_wb_categories_updates == True)
+
+
+def create_tables():
+    db.create_tables([User, LogCommandItem])

@@ -3,12 +3,13 @@ from datetime import datetime
 import pytest
 from freezegun import freeze_time
 
-from src.models import (LogCommandItem, User, get_subscribed_to_wb_categories_updates, log_command, user_get_by,
+from src.models_peewee import (LogCommandItem, User, get_subscribed_to_wb_categories_updates, log_command, user_get_by,
                         user_get_by_update)
 
 
 def test_user_get_by_chat_id():
-    u_created = User(chat_id='1234').save()
+    u_created = User(chat_id='1234')
+    u_created.save()
 
     u_fetched = user_get_by(chat_id='1234')
 
@@ -17,7 +18,8 @@ def test_user_get_by_chat_id():
 
 @freeze_time('2030-01-15')
 def test_user_created_updated_at():
-    user = User(chat_id='12345').save()
+    user = User(chat_id='12345')
+    user.save()
 
     assert user.created_at == datetime(2030, 1, 15)
     assert user.updated_at == datetime(2030, 1, 15)
@@ -25,7 +27,8 @@ def test_user_created_updated_at():
 
 @freeze_time('2030-01-15')
 def test_user_updated_at_changing():
-    user = User(chat_id='123456').save()
+    user = User(chat_id='123456')
+    user.save()
 
     assert user.updated_at == datetime(2030, 1, 15)
 
@@ -37,15 +40,17 @@ def test_user_updated_at_changing():
 
 
 @freeze_time('2030-01-15')
-def test_log_command_item_created_at():
-    lci = LogCommandItem(command='/start').save()
+def test_log_command_item_created_at(bot_user):
+    lci = LogCommandItem(user=bot_user, command='/start')
+    lci.save()
 
     assert lci.created_at == datetime(2030, 1, 15)
 
 
 @freeze_time('2030-01-15')
-def test_log_command_item_created_at_existing():
-    lci = LogCommandItem(command='/start').save()
+def test_log_command_item_created_at_existing(bot_user):
+    lci = LogCommandItem(user=bot_user, command='/start')
+    lci.save()
 
     with freeze_time('2030-06-15'):
         lci.message = 'Oh my dummy'
@@ -88,7 +93,8 @@ def test_user_get_by_update_without_surname(telegram_update_without_surname):
 
 
 def test_user_get_by_update_username_changed(telegram_update):
-    User(chat_id='383716', user_name='dummy', full_name='John Doe').save()
+    user = User(chat_id='383716', user_name='dummy', full_name='John Doe')
+    user.save()
 
     update = telegram_update()
 
@@ -103,10 +109,10 @@ def test_user_log_command(bot_user):
     log_command(bot_user, '/start', 'Hi')
     log_command(bot_user, '/stop', 'Bye')
 
-    all_commands = LogCommandItem.objects(user=bot_user.id)
+    all_commands = LogCommandItem.filter(user=bot_user.id)
 
     assert all_commands.count() == 2
-    assert all_commands.first()['message'] == 'Hi'
+    assert all_commands.first().message == 'Hi'
 
 
 def test_today_catalog_requests_count(bot_user, create_telegram_command_logs):

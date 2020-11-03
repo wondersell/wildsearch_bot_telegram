@@ -18,7 +18,7 @@ from seller_stats.utils.loaders import ScrapinghubLoader
 from telegram import Bot
 
 from .helpers import AmplitudeLogger, category_export, detect_mp_by_job_id
-from .models import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
+from .models_peewee import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
 
 env.read_envfile()
 
@@ -90,7 +90,7 @@ def calculate_category_stats(self, job_id, chat_id):
 
 @celery.task()
 def schedule_category_export(category_url: str, chat_id: int, log_id):
-    log_item = LogCommandItem.objects(id=log_id).first()
+    log_item = LogCommandItem.get(LogCommandItem.id == log_id)
 
     try:
         category_export(category_url, chat_id)

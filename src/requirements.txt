@@ -22,6 +22,7 @@ boto3==1.15.11
 Jinja2==2.11.2
 WeasyPrint
 airtable-python-wrapper==0.15.0
+peewee==3.13.3
 
 pytest==6.1.1
 pytest-cov==2.10.1
