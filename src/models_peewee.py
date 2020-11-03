@@ -10,7 +10,7 @@ db = connect(env('DATABASE_URL', cast=str, default='sqlite:///db.sqlite'))
 
 
 class User(pw.Model):
-    chat_id = pw.IntegerField(index=True, unique=True)
+    chat_id = pw.IntegerField(primary_key=True)
     user_name = pw.CharField(index=True, null=True)
     full_name = pw.CharField(index=True, null=True)
     daily_catalog_requests_limit = pw.IntegerField(default=int(env('SETTINGS_FREE_DAILY_REQUESTS', 5)))
