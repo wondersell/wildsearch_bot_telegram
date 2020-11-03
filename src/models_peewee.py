@@ -16,7 +16,7 @@ class User(pw.Model):
     daily_catalog_requests_limit = pw.IntegerField(default=int(env('SETTINGS_FREE_DAILY_REQUESTS', 5)))
     catalog_requests_blocked = pw.BooleanField(default=False, index=True)
     subscribe_to_wb_categories_updates = pw.BooleanField(default=False, index=True)
-    created_at = pw.DateTimeField(default=datetime.now(), index=True)
+    created_at = pw.DateTimeField(index=True)
     updated_at = pw.DateTimeField(index=True)
 
     def can_send_more_catalog_requests(self) -> bool:
@@ -54,6 +54,10 @@ class User(pw.Model):
         return oldest_request.created_at + timedelta(hours=24)
 
     def save(self, *args, **kwargs):
+        """Add timestamps for creating and updating items."""
+        if not self.created_at:
+            self.created_at = datetime.now()
+
         self.updated_at = datetime.now()
 
         return super(User, self).save(*args, **kwargs)
@@ -64,12 +68,19 @@ class LogCommandItem(pw.Model):
     command = pw.CharField(index=True, null=True)
     message = pw.CharField(null=True)
     status = pw.CharField(null=True)
-    created_at = pw.DateTimeField(default=datetime.now(), index=True)
+    created_at = pw.DateTimeField(index=True)
 
     def set_status(self, status):
         self.status = status
         self.save()
         return self
+
+    def save(self, *args, **kwargs):
+        """Add timestamps for creating and updating items."""
+        if not self.created_at:
+            self.created_at = datetime.now()
+
+        return super(LogCommandItem, self).save(*args, **kwargs)
 
 
 def user_get_by(*args, **kwargs):
@@ -120,7 +131,7 @@ def log_command(user, command: str, message: str = ''):
 
 
 def get_subscribed_to_wb_categories_updates() -> []:
-    return User.select().where(User.subscribe_to_wb_categories_updates == True)
+    return User.select().where(User.subscribe_to_wb_categories_updates == True)  # noqa: E712
 
 
 def create_tables():

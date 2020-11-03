@@ -4,7 +4,7 @@ import pytest
 from freezegun import freeze_time
 
 from src.models_peewee import (LogCommandItem, User, get_subscribed_to_wb_categories_updates, log_command, user_get_by,
-                        user_get_by_update)
+                               user_get_by_update)
 
 
 def test_user_get_by_chat_id():
