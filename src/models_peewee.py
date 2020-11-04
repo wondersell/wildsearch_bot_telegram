@@ -107,11 +107,11 @@ def user_get_by_update(update: Update):
 
     instance, created = User.get_or_create(
         chat_id=message.chat.id,
-        defaults=dict(
-            chat_id=message.chat.id,
-            user_name=message.chat.username,
-            full_name=full_name,
-        ),
+        defaults={
+            'chat_id': message.chat.id,
+            'user_name': message.chat.username,
+            'full_name': full_name,
+        },
     )
 
     return instance
