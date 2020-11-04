@@ -5,6 +5,7 @@ from os import environ
 from unittest.mock import patch
 
 import mongoengine as me
+import peewee as pw
 import pytest
 import requests_mock
 from botocore.stub import Stubber
@@ -13,7 +14,7 @@ from falcon import testing
 from telegram import Bot, Update
 
 from src import helpers
-from src.models import User, log_command
+from src.models_peewee import User, log_command
 
 
 @pytest.fixture()
@@ -145,6 +146,28 @@ def mongo(request):
     me.connect('mongotest', host='mongomock://localhost')
 
 
+@pytest.fixture
+def db():
+    return pw.SqliteDatabase(':memory:')
+
+
+@pytest.fixture(autouse=True)
+def models(db):
+    """Emulate the transaction -- create a new db before each test and flush it after.
+    Also, return the app.models module"""
+    from src import models_peewee
+    app_models = [models_peewee.User, models_peewee.LogCommandItem]
+
+    db.bind(app_models, bind_refs=False, bind_backrefs=False)
+    db.connect()
+    db.create_tables(app_models)
+
+    yield models
+
+    db.drop_tables(app_models)
+    db.close()
+
+
 @pytest.fixture(autouse=True)
 def requests_mocker():
     """Mock all requests.
@@ -159,11 +182,13 @@ def requests_mocker():
 
 @pytest.fixture()
 def bot_user():
-    return User(
+    user = User.create(
         chat_id=383716,
         user_name='wildsearch_test_user',
         full_name='Wonder Sell',
-    ).save()
+    )
+
+    return user
 
 
 @pytest.fixture()

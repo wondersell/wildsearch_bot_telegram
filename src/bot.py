@@ -4,7 +4,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMa
 from telegram.ext import CallbackContext, CallbackQueryHandler, CommandHandler, Dispatcher, Filters, MessageHandler
 
 from . import tasks
-from .models import log_command, user_get_by_update
+from .models_peewee import create_tables, log_command, user_get_by_update
 
 # включаем логи
 logger = logging.getLogger(__name__)
@@ -174,6 +174,8 @@ def reset_webhook(bot, url, token):
 
 
 def start_bot(bot):
+    create_tables()
+
     dp = Dispatcher(bot, None, workers=0, use_context=True)
 
     dp.add_handler(CommandHandler('start', help_start))

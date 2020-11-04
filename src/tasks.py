@@ -18,7 +18,7 @@ from seller_stats.utils.loaders import ScrapinghubLoader
 from telegram import Bot
 
 from .helpers import AmplitudeLogger, category_export, detect_mp_by_job_id
-from .models import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by
+from .models_peewee import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by_chat_id
 
 env.read_envfile()
 
@@ -47,7 +47,7 @@ def get_cat_update_users():
 
 @celery.task(bind=True, default_retry_delay=10, max_retries=6)
 def calculate_category_stats(self, job_id, chat_id):
-    user = user_get_by(chat_id=chat_id)
+    user = user_get_by_chat_id(chat_id=chat_id)
     slug, marketplace, transformer = detect_mp_by_job_id(job_id=job_id)
     data = []
 
@@ -90,7 +90,7 @@ def calculate_category_stats(self, job_id, chat_id):
 
 @celery.task()
 def schedule_category_export(category_url: str, chat_id: int, log_id):
-    log_item = LogCommandItem.objects(id=log_id).first()
+    log_item = LogCommandItem.get(LogCommandItem.id == log_id)
 
     try:
         category_export(category_url, chat_id)
@@ -107,7 +107,7 @@ def schedule_category_export(category_url: str, chat_id: int, log_id):
 
 @celery.task()
 def send_category_requests_count_message(chat_id: int):
-    user = user_get_by(chat_id=chat_id)
+    user = user_get_by_chat_id(chat_id=chat_id)
 
     emojis_left = ''.join(map(lambda x: '🌕', range(user.catalog_requests_left_count())))
     emojis_used = ''.join(map(lambda x: '🌑', range(user.today_catalog_requests_count())))
@@ -120,7 +120,7 @@ def send_category_requests_count_message(chat_id: int):
 
 @celery.task()
 def check_requests_count_recovered(chat_id: int):
-    user = user_get_by(chat_id=chat_id)
+    user = user_get_by_chat_id(chat_id=chat_id)
 
     if user.catalog_requests_left_count() == user.daily_catalog_requests_limit:
         # here we are limiting the maximum number of emojis to 10
@@ -136,7 +136,7 @@ def check_requests_count_recovered(chat_id: int):
 def track_amplitude(chat_id: int, event: str, event_properties=None, timestamp=None):
     if env('AMPLITUDE_API_KEY', default=None) is not None:
         amplitude = AmplitudeLogger(env('AMPLITUDE_API_KEY'))
-        user = user_get_by(chat_id=chat_id)
+        user = user_get_by_chat_id(chat_id=chat_id)
         amplitude.log(
             user_id=chat_id,
             event=event,
@@ -211,7 +211,7 @@ def add_user_to_crm(chat_id):
     if env('AIRTABLE_API_KEY', None) is not None:
         logger.info('Saving new user to CRM')
 
-        user = user_get_by(chat_id=chat_id)
+        user = user_get_by_chat_id(chat_id=chat_id)
 
         logger.info(f"created_at is {user.created_at.replace(tzinfo=datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.000Z')}")
 
