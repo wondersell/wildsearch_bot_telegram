@@ -3,15 +3,14 @@ from datetime import datetime
 import pytest
 from freezegun import freeze_time
 
-from src.models_peewee import (LogCommandItem, User, get_subscribed_to_wb_categories_updates, log_command, user_get_by,
+from src.models_peewee import (LogCommandItem, User, get_subscribed_to_wb_categories_updates, log_command, user_get_by_chat_id,
                                user_get_by_update)
 
 
 def test_user_get_by_chat_id():
-    u_created = User(chat_id='1234')
-    u_created.save()
+    u_created = User.create(chat_id=1234)
 
-    u_fetched = user_get_by(chat_id='1234')
+    u_fetched = user_get_by_chat_id(chat_id=1234)
 
     assert u_created == u_fetched
 
@@ -109,7 +108,7 @@ def test_user_log_command(bot_user):
     log_command(bot_user, '/start', 'Hi')
     log_command(bot_user, '/stop', 'Bye')
 
-    all_commands = LogCommandItem.filter(user=bot_user.id)
+    all_commands = LogCommandItem.filter(user=bot_user.chat_id)
 
     assert all_commands.count() == 2
     assert all_commands.first().message == 'Hi'

@@ -182,13 +182,11 @@ def requests_mocker():
 
 @pytest.fixture()
 def bot_user():
-    user = User(
+    user = User.create(
         chat_id=383716,
         user_name='wildsearch_test_user',
         full_name='Wonder Sell',
     )
-
-    user.save()
 
     return user
 

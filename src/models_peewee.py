@@ -34,7 +34,7 @@ class User(pw.Model):
         time_from = datetime.now() - timedelta(hours=24)
 
         return LogCommandItem.select().where(
-            LogCommandItem.user == self.id,
+            LogCommandItem.user == self.chat_id,
             LogCommandItem.command == 'wb_catalog',
             LogCommandItem.status == 'success',
             LogCommandItem.created_at >= time_from).count()
@@ -47,7 +47,7 @@ class User(pw.Model):
             return datetime.now()
 
         oldest_request = LogCommandItem.select().where(
-            LogCommandItem.user == self.id,
+            LogCommandItem.user == self.chat_id,
             LogCommandItem.command == 'wb_catalog',
         ).order_by(LogCommandItem.created_at).limit(self.daily_catalog_requests_limit).first()
 
@@ -89,8 +89,8 @@ class LogCommandItem(pw.Model):
         database = db
 
 
-def user_get_by(*args, **kwargs):
-    return User.get(*args, **kwargs)
+def user_get_by_chat_id(chat_id):
+    return User.get(User.chat_id == chat_id)
 
 
 def user_get_by_update(update: Update):
@@ -99,29 +99,22 @@ def user_get_by_update(update: Update):
     else:
         message = update.callback_query.message
 
-    try:
-        user = User.get(User.chat_id == message.chat.id)
+    full_name = ''
+    if message.chat.first_name:
+        full_name += message.chat.first_name
+    if message.from_user.last_name:
+        full_name += ' ' + message.chat.last_name
 
-        if user.user_name != message.chat.username:
-            user.user_name = message.chat.username
-            user.save()
-
-    except pw.DoesNotExist:
-        full_name = ''
-        if message.chat.first_name:
-            full_name += message.chat.first_name
-        if message.from_user.last_name:
-            full_name += ' ' + message.chat.last_name
-
-        user = User(
-            chat_id=message.chat_id,
+    instance, created = User.get_or_create(
+        chat_id=message.chat.id,
+        defaults=dict(
+            chat_id=message.chat.id,
             user_name=message.chat.username,
             full_name=full_name,
-        )
+        ),
+    )
 
-        user.save()
-
-    return user
+    return instance
 
 
 def log_command(user, command: str, message: str = ''):
