@@ -60,6 +60,8 @@ def test_command_catalog_throttled_wb(mocked_bot_send_message, mocked_celery_del
     web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
 
     assert 'Ваш лимит запросов закончился.' in mocked_bot_send_message.call_args.kwargs['text']
+    assert 'aloha@wondersell.ru' in mocked_bot_send_message.call_args.kwargs['text']
+    assert mocked_bot_send_message.call_args.kwargs['reply_markup'] is not None
 
 
 @pytest.mark.parametrize('message_text, expected_text', [
