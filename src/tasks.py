@@ -100,6 +100,7 @@ def schedule_category_export(category_url: str, chat_id: int, log_id):
     except Exception:
         message = 'Извините, мы сейчас не можем обработать ваш запрос – у нас образовалась слишком большая очередь на анализ категорий. Пожалуйста, подождите немного и отправьте запрос снова.'
         track_amplitude.delay(chat_id=chat_id, event='Received "Too long queue" error')
+        log_item.set_status('too_long_queue')
         pass
 
     bot.send_message(chat_id=chat_id, text=message)
