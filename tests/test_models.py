@@ -119,6 +119,13 @@ def test_today_catalog_requests_count(bot_user, create_telegram_command_logs):
     assert bot_user.today_catalog_requests_count() == 2
 
 
+def test_today_catalog_requests_count_with_empty_statuses(bot_user, create_telegram_command_logs):
+    create_telegram_command_logs(2, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
+    create_telegram_command_logs(2, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/', '')
+
+    assert bot_user.today_catalog_requests_count() == 2
+
+
 def test_catalog_requests_left_count(bot_user, create_telegram_command_logs):
     create_telegram_command_logs(3, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/')
     assert bot_user.catalog_requests_left_count() == 0
