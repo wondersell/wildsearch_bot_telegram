@@ -3,6 +3,8 @@ from unittest.mock import patch
 import pytest
 from envparse import env
 
+from src.tasks import send_category_requests_count_message
+
 
 @pytest.mark.parametrize('message', [
     ['https://www.wildberries.ru/brands/la-belle-femme'],
@@ -67,6 +69,7 @@ def test_command_catalog_throttled_wb(mocked_bot_send_message, mocked_celery_del
 @pytest.mark.parametrize('message_text, expected_text', [
     ['ℹ️ О сервисе', 'Этот телеграм бот поможет собирать данные о товарах на Wildberries'],
     ['🚀 Увеличить лимит запросов', 'Если вы хотите увеличить или снять лимит запросов'],
+    ['🚀 Снять ограничение', 'Если вы хотите увеличить или снять лимит запросов'],
     ['Я просто мимокрокодил', 'Непонятная команда'],
 ])
 @patch('telegram.Bot.send_message')
@@ -96,6 +99,7 @@ def test_reply_commands(mocked_reply_text, web_app, telegram_json_command, comma
     ['keyboard_help_catalog_link', 'скопируйте из адресной строки браузера ссылку'],
     ['keyboard_analyse_category', 'Анализ выбранной категории'],
     ['keyboard_help_info_feedback', 'напишите нам весточку'],
+    ['keyboard_help_no_limits', 'Если вы хотите увеличить или снять лимит запросов']
 ])
 @patch('telegram.Bot.send_message')
 def test_reply_callbacks(mocked_bot_send_message, web_app, telegram_json_callback, callback, expected_text):
@@ -104,3 +108,36 @@ def test_reply_callbacks(mocked_bot_send_message, web_app, telegram_json_callbac
     web_app.simulate_post('/' + env('TELEGRAM_API_TOKEN'), body=telegram_json)
 
     assert expected_text in mocked_bot_send_message.call_args.kwargs['text']
+
+
+@patch('telegram.Bot.send_message')
+def test_left_requests_messages(mocked_bot_send_message, create_telegram_command_logs, bot_user):
+    create_telegram_command_logs(2, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/kantstovary/tochilki')
+
+    send_category_requests_count_message(chat_id=383716)
+
+    assert 'Вам доступно 1' in mocked_bot_send_message.call_args.kwargs['text']
+    assert mocked_bot_send_message.call_args.kwargs['text'].count('🌕') == 1
+    assert mocked_bot_send_message.call_args.kwargs['text'].count('🌑') == 2
+
+
+@patch('telegram.Bot.send_message')
+def test_left_requests_messages_no_moons(mocked_bot_send_message, create_telegram_command_logs, bot_user):
+    bot_user.daily_catalog_requests_limit = 11
+    bot_user.save()
+
+    send_category_requests_count_message(chat_id=383716)
+
+    assert 'Вам доступно 11' in mocked_bot_send_message.call_args.kwargs['text']
+    assert mocked_bot_send_message.call_args.kwargs['text'].count('🌕') == 0
+    assert mocked_bot_send_message.call_args.kwargs['text'].count('🌑') == 0
+
+
+@patch('telegram.Bot.send_message')
+def test_left_requests_messages_empty(mocked_bot_send_message, create_telegram_command_logs, bot_user):
+    create_telegram_command_logs(3, 'wb_catalog', 'https://www.wildberries.ru/catalog/knigi-i-diski/kantstovary/tochilki')
+
+    send_category_requests_count_message(chat_id=383716)
+
+    assert 'У вас больше нет доступных запросов.' in mocked_bot_send_message.call_args.kwargs['text']
+    assert mocked_bot_send_message.call_args.kwargs['reply_markup'] is not None

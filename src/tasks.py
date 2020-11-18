@@ -15,7 +15,7 @@ from seller_stats.utils.formatters import format_currency as fcur
 from seller_stats.utils.formatters import format_number as fnum
 from seller_stats.utils.formatters import format_quantity as fquan
 from seller_stats.utils.loaders import ScrapinghubLoader
-from telegram import Bot
+from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
 
 from .helpers import AmplitudeLogger, category_export, detect_mp_by_job_id
 from .models_peewee import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by_chat_id
@@ -110,13 +110,26 @@ def schedule_category_export(category_url: str, chat_id: int, log_id):
 def send_category_requests_count_message(chat_id: int):
     user = user_get_by_chat_id(chat_id=chat_id)
 
-    emojis_left = ''.join(map(lambda x: '🌕', range(user.catalog_requests_left_count())))
-    emojis_used = ''.join(map(lambda x: '🌑', range(user.today_catalog_requests_count())))
-    emojis = emojis_left + emojis_used
+    requests_left = user.catalog_requests_left_count()
+    requests_today = user.today_catalog_requests_count()
 
-    message = f'Вам доступно {user.catalog_requests_left_count()} из {user.daily_catalog_requests_limit} запросов\n{emojis}\n\nЛимит восстанавится через 24 часа с момента анализа.'
+    if (requests_left + requests_today) <= 10:
+        emojis_left = ''.join(map(lambda x: '🌕', range(requests_left)))
+        emojis_used = ''.join(map(lambda x: '🌑', range(requests_today)))
+        emojis = emojis_left + emojis_used + '\n\n'
+    else:
+        emojis = ''
 
-    bot.send_message(chat_id=chat_id, text=message)
+    if requests_left > 0:
+        message = f'Вам доступно {requests_left} из {user.daily_catalog_requests_limit} запросов\n{emojis}Лимит восстанавится через 24 часа с момента анализа.'
+        reply_markup = None
+    else:
+        message = f'У вас больше нет доступных запросов.\n{emojis}\n\nВы можете снять ограничения, купив платный аккаунт. Либо подождите 24 часа и лимит восстановится.'
+        reply_markup = InlineKeyboardMarkup([
+            [InlineKeyboardButton('🚀 Снять ограничения', callback_data='keyboard_help_no_limits')],
+        ])
+
+    bot.send_message(chat_id=chat_id, text=message, reply_markup=reply_markup)
 
 
 @celery.task()

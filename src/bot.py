@@ -108,7 +108,7 @@ def help_no_limits(update: Update, context: CallbackContext):
 
     context.bot.send_message(
         chat_id=user.chat_id,
-        text='Если вы хотите увеличить или снять лимит запросов напишите нам в чат поддержки запрос с фразой «Снимите лимит запросов».',
+        text='Если вы хотите увеличить или снять лимит запросов напишите нам напишите нам в чат поддержки или на почту aloha@wondersell.ru запрос с фразой «Снимите лимит запросов».',
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton('👨‍🚀 Написать в поддержку', url='https://t.me/wildsearch_support_bot')],
         ]),
@@ -186,10 +186,12 @@ def start_bot(bot):
 
     dp.add_handler(MessageHandler(Filters.text & Filters.regex('ℹ️ О сервисе'), help_info))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex('🚀 Увеличить лимит запросов'), help_no_limits))
+    dp.add_handler(MessageHandler(Filters.text & Filters.regex('🚀 Снять ограничение'), help_no_limits))
 
     dp.add_handler(CallbackQueryHandler(help_analyse_category, pattern='keyboard_analyse_category'))
     dp.add_handler(CallbackQueryHandler(help_catalog_link, pattern='keyboard_help_catalog_link'))
     dp.add_handler(CallbackQueryHandler(help_feedback, pattern='keyboard_help_info_feedback'))
+    dp.add_handler(CallbackQueryHandler(help_no_limits, pattern='keyboard_help_no_limits'))
 
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'(ozon\.ru|beru\.ru|goods\.ru|tmall\.ru|lamoda\.ru)/'), help_marketplace_not_supported))
     dp.add_handler(MessageHandler(Filters.text & Filters.regex(r'www\.wildberries\.ru/catalog/.*/detail\.aspx'), help_command_not_found))
