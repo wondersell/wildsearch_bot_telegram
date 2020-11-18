@@ -15,7 +15,7 @@ from seller_stats.utils.formatters import format_currency as fcur
 from seller_stats.utils.formatters import format_number as fnum
 from seller_stats.utils.formatters import format_quantity as fquan
 from seller_stats.utils.loaders import ScrapinghubLoader
-from telegram import Bot, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 
 from .helpers import AmplitudeLogger, category_export, detect_mp_by_job_id
 from .models_peewee import LogCommandItem, get_subscribed_to_wb_categories_updates, user_get_by_chat_id
