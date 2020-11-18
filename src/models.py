@@ -1,69 +1,23 @@
 from datetime import datetime, timedelta
 
+import peewee as pw
 from envparse import env
-from mongoengine import BooleanField, DateTimeField, Document, IntField, ReferenceField, StringField, connect
+from playhouse.db_url import connect
 from telegram import Update
 
 env.read_envfile()
-
-connect(host=env('MONGODB_URI'))
-
-
-def user_get_by(*args, **kwargs):
-    return User.objects(*args, **kwargs).first()
+db = connect(env('DATABASE_URL', cast=str, default='sqlite:///db.sqlite'))
 
 
-def user_get_by_update(update: Update):
-    if update.message:
-        message = update.message
-    else:
-        message = update.callback_query.message
-
-    matched = User.objects(chat_id=message.chat.id)
-
-    if matched.count():
-        user = matched.first()
-
-        if user.user_name != message.chat.username:
-            user.user_name = message.chat.username
-            user.save()
-
-        return user
-
-    full_name = ''
-    if message.chat.first_name:
-        full_name += message.chat.first_name
-    if message.from_user.last_name:
-        full_name += ' ' + message.chat.last_name
-
-    return User(
-        chat_id=message.chat_id,
-        user_name=message.chat.username,
-        full_name=full_name,
-    ).save()
-
-
-def log_command(user, command: str, message: str = ''):
-    return LogCommandItem(
-        user=user,
-        command=command,
-        message=message,
-    ).save()
-
-
-def get_subscribed_to_wb_categories_updates() -> []:
-    return User.objects(subscribe_to_wb_categories_updates=True)
-
-
-class User(Document):
-    chat_id = IntField(required=True, primary_key=True)
-    user_name = StringField()
-    full_name = StringField()
-    daily_catalog_requests_limit = IntField(default=int(env('SETTINGS_FREE_DAILY_REQUESTS', 5)))
-    catalog_requests_blocked = BooleanField(default=False)
-    subscribe_to_wb_categories_updates = BooleanField(default=False)
-    created_at = DateTimeField()
-    updated_at = DateTimeField()
+class User(pw.Model):
+    chat_id = pw.IntegerField(primary_key=True)
+    user_name = pw.CharField(index=True, null=True)
+    full_name = pw.CharField(index=True, null=True)
+    daily_catalog_requests_limit = pw.IntegerField(default=int(env('SETTINGS_FREE_DAILY_REQUESTS', 5)))
+    catalog_requests_blocked = pw.BooleanField(default=False, index=True)
+    subscribe_to_wb_categories_updates = pw.BooleanField(default=False, index=True)
+    created_at = pw.DateTimeField(index=True)
+    updated_at = pw.DateTimeField(index=True)
 
     def can_send_more_catalog_requests(self) -> bool:
         """Throttling here."""
@@ -79,11 +33,11 @@ class User(Document):
         """Get catalog requests count based on requests log."""
         time_from = datetime.now() - timedelta(hours=24)
 
-        return LogCommandItem.objects(
-            user=self.id,
-            command='wb_catalog',
-            status='success',
-            created_at__gte=time_from).count()
+        return LogCommandItem.select().where(
+            LogCommandItem.user == self.chat_id,
+            LogCommandItem.command == 'wb_catalog',
+            LogCommandItem.status == 'success',
+            LogCommandItem.created_at >= time_from).count()
 
     def catalog_requests_left_count(self) -> int:
         return self.daily_catalog_requests_limit - self.today_catalog_requests_count()
@@ -92,12 +46,12 @@ class User(Document):
         if self.today_catalog_requests_count() < self.daily_catalog_requests_limit:
             return datetime.now()
 
-        oldest_request = LogCommandItem.objects(
-            user=self.id,
-            command='wb_catalog',
-        ).order_by('+created_at').limit(self.daily_catalog_requests_limit).first()
+        oldest_request = LogCommandItem.select().where(
+            LogCommandItem.user == self.chat_id,
+            LogCommandItem.command == 'wb_catalog',
+        ).order_by(LogCommandItem.created_at).limit(self.daily_catalog_requests_limit).first()
 
-        return oldest_request['created_at'] + timedelta(hours=24)
+        return oldest_request.created_at + timedelta(hours=24)
 
     def save(self, *args, **kwargs):
         """Add timestamps for creating and updating items."""
@@ -108,13 +62,16 @@ class User(Document):
 
         return super(User, self).save(*args, **kwargs)
 
+    class Meta:
+        database = db
 
-class LogCommandItem(Document):
-    user = ReferenceField(User)
-    command = StringField()
-    message = StringField()
-    status = StringField()
-    created_at = DateTimeField()
+
+class LogCommandItem(pw.Model):
+    user = pw.ForeignKeyField(User, index=True)
+    command = pw.CharField(index=True, null=True)
+    message = pw.CharField(null=True)
+    status = pw.CharField(null=True)
+    created_at = pw.DateTimeField(index=True)
 
     def set_status(self, status):
         self.status = status
@@ -127,3 +84,54 @@ class LogCommandItem(Document):
             self.created_at = datetime.now()
 
         return super(LogCommandItem, self).save(*args, **kwargs)
+
+    class Meta:
+        database = db
+
+
+def user_get_by_chat_id(chat_id):
+    return User.get(User.chat_id == chat_id)
+
+
+def user_get_by_update(update: Update):
+    if update.message:
+        message = update.message
+    else:
+        message = update.callback_query.message
+
+    full_name = ''
+    if message.chat.first_name:
+        full_name += message.chat.first_name
+    if message.from_user.last_name:
+        full_name += ' ' + message.chat.last_name
+
+    instance, created = User.get_or_create(
+        chat_id=message.chat.id,
+        defaults={
+            'chat_id': message.chat.id,
+            'user_name': message.chat.username,
+            'full_name': full_name,
+        },
+    )
+
+    return instance
+
+
+def log_command(user, command: str, message: str = ''):
+    command = LogCommandItem(
+        user=user,
+        command=command,
+        message=message,
+    )
+
+    command.save()
+
+    return command
+
+
+def get_subscribed_to_wb_categories_updates() -> []:
+    return User.select().where(User.subscribe_to_wb_categories_updates == True)  # noqa: E712
+
+
+def create_tables():
+    db.create_tables([User, LogCommandItem])

@@ -14,7 +14,7 @@ from falcon import testing
 from telegram import Bot, Update
 
 from src import helpers
-from src.models_peewee import User, log_command
+from src.models import User, log_command
 
 
 @pytest.fixture()
@@ -155,8 +155,8 @@ def db():
 def models(db):
     """Emulate the transaction -- create a new db before each test and flush it after.
     Also, return the app.models module"""
-    from src import models_peewee
-    app_models = [models_peewee.User, models_peewee.LogCommandItem]
+    from src import models
+    app_models = [models.User, models.LogCommandItem]
 
     db.bind(app_models, bind_refs=False, bind_backrefs=False)
     db.connect()

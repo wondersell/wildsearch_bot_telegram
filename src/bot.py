@@ -4,7 +4,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMa
 from telegram.ext import CallbackContext, CallbackQueryHandler, CommandHandler, Dispatcher, Filters, MessageHandler
 
 from . import tasks
-from .models_peewee import create_tables, log_command, user_get_by_update
+from .models import create_tables, log_command, user_get_by_update
 
 # включаем логи
 logger = logging.getLogger(__name__)

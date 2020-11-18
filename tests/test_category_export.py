@@ -6,7 +6,7 @@ from celery.exceptions import Retry
 from freezegun import freeze_time
 
 from src.helpers import category_export, init_scrapinghub, scheduled_jobs_count
-from src.models_peewee import log_command
+from src.models import log_command
 from src.tasks import (calculate_category_stats, check_requests_count_recovered, get_cat_update_users,
                        schedule_category_export, send_category_requests_count_message)
 
