@@ -1,6 +1,7 @@
 import pytest
-from src.viewmodels.report import Report
 from seller_stats.category_stats import CategoryStats
+
+from src.viewmodels.report import Report
 
 
 @pytest.fixture()

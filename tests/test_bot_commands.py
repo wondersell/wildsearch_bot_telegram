@@ -99,7 +99,7 @@ def test_reply_commands(mocked_reply_text, web_app, telegram_json_command, comma
     ['keyboard_help_catalog_link', 'скопируйте из адресной строки браузера ссылку'],
     ['keyboard_analyse_category', 'Анализ выбранной категории'],
     ['keyboard_help_info_feedback', 'напишите нам весточку'],
-    ['keyboard_help_no_limits', 'Если вы хотите увеличить или снять лимит запросов']
+    ['keyboard_help_no_limits', 'Если вы хотите увеличить или снять лимит запросов'],
 ])
 @patch('telegram.Bot.send_message')
 def test_reply_callbacks(mocked_bot_send_message, web_app, telegram_json_callback, callback, expected_text):

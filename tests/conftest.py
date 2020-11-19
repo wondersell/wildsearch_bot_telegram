@@ -11,12 +11,11 @@ import requests_mock
 from botocore.stub import Stubber
 from envparse import env
 from falcon import testing
+from seller_stats.utils.loaders import ScrapinghubLoader
 from telegram import Bot, Update
 
 from src import helpers
 from src.models import User, log_command
-
-from seller_stats.utils.loaders import ScrapinghubLoader
 
 
 @pytest.fixture()
