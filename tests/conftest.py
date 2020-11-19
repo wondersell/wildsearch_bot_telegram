@@ -16,6 +16,8 @@ from telegram import Bot, Update
 from src import helpers
 from src.models import User, log_command
 
+from seller_stats.utils.loaders import ScrapinghubLoader
+
 
 @pytest.fixture()
 def current_path():
@@ -124,6 +126,40 @@ def create_telegram_command_logs(bot_user):
             cmd.set_status(status)
 
     return _create_telegram_catalog_logs
+
+
+@pytest.fixture()
+def sample_category_data_raw(current_path):
+    def _sample_category_data_raw(source='wb_raw'):
+        return open(current_path + f'/mocks/scrapinghub_items_{source}.msgpack', 'rb').read()
+
+    return _sample_category_data_raw
+
+
+@pytest.fixture()
+def set_scrapinghub_requests_mock(requests_mock, sample_category_data_raw):
+    def _set_scrapinghub_requests_mock(pending_count=1, running_count=1, job_id='123/1/2', result_source='wb_raw'):
+        requests_mock.get('https://storage.scrapinghub.com/ids/414324/spider/wb', text='1')
+        requests_mock.get('https://storage.scrapinghub.com/ids/414324/spider/ozon', text='1')
+        requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=pending&spider=wb', text=f'{pending_count}')
+        requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=running&spider=wb', text=f'{running_count}')
+        requests_mock.post('https://app.scrapinghub.com/api/run.json', json={'status': 'ok', 'jobid': f'{job_id}'})
+        requests_mock.get(f'https://storage.scrapinghub.com/items/{job_id}?meta=_key', content=sample_category_data_raw(source=result_source), headers={'Content-Type': 'application/x-msgpack; charset=UTF-8'})
+        requests_mock.get(f'https://storage.scrapinghub.com/jobs/{job_id}/state', text='"finished"')
+
+    return _set_scrapinghub_requests_mock
+
+
+@pytest.fixture()
+def scrapinghub_dataset(set_scrapinghub_requests_mock):
+    def _scrapinghub_dataset(job_id, result_source):
+        set_scrapinghub_requests_mock(result_source=result_source)
+
+        slug, marketplace, transformer = helpers.detect_mp_by_job_id(job_id=job_id)
+
+        return ScrapinghubLoader(job_id=job_id, transformer=transformer).load()
+
+    return _scrapinghub_dataset
 
 
 @pytest.fixture

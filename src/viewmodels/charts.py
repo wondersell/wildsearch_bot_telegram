@@ -19,6 +19,10 @@ class BarChart(BaseViewModel):
         self._y_axis = y_axis
         self._max_value = df['val'].max()
         _, self._max_row_value = smart_format_round_super_hard(float(self._max_value))
+
+        if self._max_row_value == 0:
+            self._max_row_value = 1
+
         self._detect_countries = detect_countries
 
     @property

@@ -11,30 +11,6 @@ from src.tasks import (calculate_category_stats, check_requests_count_recovered,
                        schedule_category_export, send_category_requests_count_message)
 
 
-@pytest.fixture()
-def sample_category_data_raw(current_path):
-    def _sample_category_data_raw(spider='wb'):
-        return open(current_path + f'/mocks/scrapinghub_items_{spider}_raw.msgpack', 'rb').read()
-
-    return _sample_category_data_raw
-
-
-@pytest.fixture()
-def set_scrapinghub_requests_mock(requests_mock, sample_category_data_raw):
-    def _set_scrapinghub_requests_mock(pending_count=1, running_count=1, job_id='123/1/2'):
-        spider = 'wb' if re.findall(r'\d+\/(\d+)\/\d+', job_id)[0] == str(1) else 'ozon'
-
-        requests_mock.get('https://storage.scrapinghub.com/ids/414324/spider/wb', text='1')
-        requests_mock.get('https://storage.scrapinghub.com/ids/414324/spider/ozon', text='1')
-        requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=pending&spider=wb', text=f'{pending_count}')
-        requests_mock.get('https://storage.scrapinghub.com/jobq/414324/count?state=running&spider=wb', text=f'{running_count}')
-        requests_mock.post('https://app.scrapinghub.com/api/run.json', json={'status': 'ok', 'jobid': f'{job_id}'})
-        requests_mock.get(f'https://storage.scrapinghub.com/items/{job_id}?meta=_key', content=sample_category_data_raw(spider=spider), headers={'Content-Type': 'application/x-msgpack; charset=UTF-8'})
-        requests_mock.get(f'https://storage.scrapinghub.com/jobs/{job_id}/state', text='"finished"')
-
-    return _set_scrapinghub_requests_mock
-
-
 def test_scheduled_jobs_count(set_scrapinghub_requests_mock):
     set_scrapinghub_requests_mock(pending_count=2, running_count=3)
     client, project = init_scrapinghub()
