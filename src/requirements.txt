@@ -1,4 +1,4 @@
-python-telegram-bot==12.8
+python-telegram-bot==13.1
 falcon==2.0.0
 seller-stats==0.3.0
 click==7.1.2
