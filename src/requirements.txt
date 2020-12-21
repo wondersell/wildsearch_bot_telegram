@@ -14,7 +14,7 @@ msgpack==1.0.0
 json_log_formatter==0.3.0
 python-dateutil==2.8.1
 
-celery==4.4.7
+celery==5.0.5
 flower==0.9.5
 mongoengine==0.20.0
 redis==3.5.3
