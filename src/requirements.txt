@@ -32,7 +32,7 @@ coverage==5.3
 codecov==2.1.10
 freezegun==1.0.0
 mongomock==3.21.0
-Faker==4.14.0
+Faker==5.8.0
 requests_mock==1.8.0
 
 typing==3.7.4.3
